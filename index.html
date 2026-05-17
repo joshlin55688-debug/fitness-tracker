@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>FITNESS / TRACK — 每日訓練 + 飲食</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="logo">FITNESS<span class="logo-slash">/</span><span class="logo-accent">TRACK</span></h1>
+    <button class="icon-btn" id="settingsBtn" aria-label="設定">⚙</button>
+  </header>
+
+  <div class="date-strip" id="todayDate">—</div>
+
+  <main>
+    <!-- Status card -->
+    <section class="status-card">
+      <div class="status-icon" id="statusIcon" data-state="empty">—</div>
+      <div class="status-grid">
+        <div class="metric"><span class="label">熱量</span><span class="value" id="mKcal">—</span></div>
+        <div class="metric"><span class="label">ΔKcal</span><span class="value" id="mDelta">—</span></div>
+        <div class="metric"><span class="label">訓練點數</span><span class="value" id="mPts">—</span></div>
+        <div class="metric"><span class="label">Ready</span><span class="value" id="mReady">—</span></div>
+      </div>
+    </section>
+
+    <!-- Training section -->
+    <section class="card">
+      <h2>訓練 <span class="hint">點選類型</span></h2>
+      <div class="chip-group" id="trainingChips">
+        <button class="chip" data-value="Day 1 推">Day 1 推</button>
+        <button class="chip" data-value="Day 2 腿A">Day 2 腿A</button>
+        <button class="chip" data-value="Day 4 拉">Day 4 拉</button>
+        <button class="chip" data-value="Day 5 腿B">Day 5 腿B</button>
+        <button class="chip" data-value="方案A 全身">方案A</button>
+        <button class="chip" data-value="Day 3 主動恢復">主動恢復</button>
+        <button class="chip" data-value="休息">休息</button>
+      </div>
+      <div class="row two-col" id="trainingNumRow">
+        <div class="field">
+          <label for="duration">時長（分）</label>
+          <div class="stepper">
+            <button type="button" data-target="duration" data-delta="-5" aria-label="減 5 分">−</button>
+            <input type="number" id="duration" min="0" max="180" step="5" inputmode="numeric">
+            <button type="button" data-target="duration" data-delta="5" aria-label="加 5 分">+</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="srpe">Session-RPE（0–10）</label>
+          <div class="stepper">
+            <button type="button" data-target="srpe" data-delta="-0.5">−</button>
+            <input type="number" id="srpe" min="0" max="10" step="0.5" inputmode="decimal">
+            <button type="button" data-target="srpe" data-delta="0.5">+</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Nutrition section -->
+    <section class="card">
+      <h2>飲食 <span class="hint">蛋白優先</span></h2>
+      <div class="macros">
+        <div class="macro">
+          <div class="macro-head">
+            <label for="protein">蛋白質</label>
+            <span class="macro-target"><span id="proteinNow">0</span> / <span id="proteinTargetLabel">180</span> g</span>
+          </div>
+          <div class="stepper">
+            <button type="button" data-target="protein" data-delta="-10">−10</button>
+            <input type="number" id="protein" min="0" max="400" step="1" inputmode="numeric">
+            <button type="button" data-target="protein" data-delta="10">+10</button>
+          </div>
+          <div class="bar"><div class="fill" id="proteinFill"></div></div>
+        </div>
+        <div class="macro">
+          <div class="macro-head">
+            <label for="fat">脂肪</label>
+            <span class="macro-target"><span id="fatNow">0</span> g</span>
+          </div>
+          <div class="stepper">
+            <button type="button" data-target="fat" data-delta="-5">−5</button>
+            <input type="number" id="fat" min="0" max="200" step="1" inputmode="numeric">
+            <button type="button" data-target="fat" data-delta="5">+5</button>
+          </div>
+        </div>
+        <div class="macro">
+          <div class="macro-head">
+            <label for="carbs">碳水</label>
+            <span class="macro-target"><span id="carbsNow">0</span> g</span>
+          </div>
+          <div class="stepper">
+            <button type="button" data-target="carbs" data-delta="-25">−25</button>
+            <input type="number" id="carbs" min="0" max="600" step="1" inputmode="numeric">
+            <button type="button" data-target="carbs" data-delta="25">+25</button>
+          </div>
+        </div>
+      </div>
+      <div class="kcal-display">
+        <span class="kcal-num" id="kcalDisplay">0</span>
+        <span class="kcal-unit">kcal</span>
+        <span class="kcal-target" id="kcalTargetLabel">/ 2866</span>
+      </div>
+    </section>
+
+    <!-- Readiness section -->
+    <section class="card">
+      <h2>晨起 Readiness <span class="hint">各 1–10 分</span></h2>
+      <div class="ready-grid">
+        <div class="ready-item">
+          <label for="r1">睡眠</label>
+          <input type="range" id="r1" min="1" max="10" value="7">
+          <span class="ready-val" id="r1v">7</span>
+        </div>
+        <div class="ready-item">
+          <label for="r2">痠痛</label>
+          <input type="range" id="r2" min="1" max="10" value="7">
+          <span class="ready-val" id="r2v">7</span>
+        </div>
+        <div class="ready-item">
+          <label for="r3">心情</label>
+          <input type="range" id="r3" min="1" max="10" value="7">
+          <span class="ready-val" id="r3v">7</span>
+        </div>
+        <div class="ready-item">
+          <label for="r4">食慾</label>
+          <input type="range" id="r4" min="1" max="10" value="7">
+          <span class="ready-val" id="r4v">7</span>
+        </div>
+      </div>
+      <div class="ready-total">總分 <strong id="readyTotal">28</strong> / 40</div>
+    </section>
+
+    <!-- Body & Notes -->
+    <section class="card">
+      <h2>其他</h2>
+      <div class="row two-col">
+        <div class="field">
+          <label for="weight">體重（kg）<span class="hint-inline">一週一次</span></label>
+          <input type="number" id="weight" step="0.1" inputmode="decimal" placeholder="—">
+        </div>
+        <div class="field full">
+          <label for="notes">備註</label>
+          <textarea id="notes" rows="2" placeholder="今日感受、技術重點、傷痛..."></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- Actions -->
+    <section class="actions">
+      <button class="btn btn-primary" id="saveBtn">儲存今日</button>
+      <button class="btn btn-secondary" id="syncBtn">同步 Sheet</button>
+      <button class="btn btn-ghost" id="exportBtn">匯出 CSV</button>
+    </section>
+
+    <!-- History -->
+    <section class="card history">
+      <h2>近 14 日 <span class="hint" id="streakLabel">—</span></h2>
+      <div class="history-list" id="historyList">
+        <div class="empty">尚無紀錄</div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>本地儲存於瀏覽器，建議每週「同步 Sheet」或「匯出 CSV」備份</p>
+      <p class="footer-meta">基於 NotebookLM Report《科學增肌減脂藍圖》｜<a href="https://github.com/joshlin55688-debug/fitness-tracker" target="_blank" rel="noopener">原始碼</a></p>
+    </footer>
+  </main>
+
+  <!-- Settings modal -->
+  <div class="modal" id="settingsModal" hidden>
+    <div class="modal-content">
+      <h2>設定</h2>
+      <div class="field">
+        <label for="appsScriptUrl">Google Apps Script URL <span class="hint-inline">同步用</span></label>
+        <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
+        <p class="hint-block">部署 Apps Script 後貼上網址即可一鍵同步到 Google Sheet。<a href="https://github.com/joshlin55688-debug/fitness-tracker#%E8%A8%AD%E7%BD%AE-google-sheet-%E5%90%8C%E6%AD%A5" target="_blank" rel="noopener">設定教學</a></p>
+      </div>
+      <div class="row two-col">
+        <div class="field">
+          <label for="bodyweight">體重 (kg)</label>
+          <input type="number" id="bodyweight" step="0.5">
+        </div>
+        <div class="field">
+          <label for="proteinTarget">蛋白目標 (g)</label>
+          <input type="number" id="proteinTarget" step="1">
+        </div>
+      </div>
+      <div class="row two-col">
+        <div class="field">
+          <label for="kcalTrainTarget">訓練日 kcal</label>
+          <input type="number" id="kcalTrainTarget" step="10">
+        </div>
+        <div class="field">
+          <label for="kcalRestTarget">休息日 kcal</label>
+          <input type="number" id="kcalRestTarget" step="10">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="saveSettings">儲存</button>
+        <button class="btn btn-ghost" id="closeSettings">關閉</button>
+      </div>
+      <div class="danger-zone">
+        <button class="btn btn-ghost danger" id="clearAllBtn">清除所有本地資料</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
