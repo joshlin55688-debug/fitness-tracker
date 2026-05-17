@@ -1,0 +1,47 @@
+{
+  "name": "Fitness Tracker — 科學增肌減脂",
+  "short_name": "FT Track",
+  "description": "每日訓練 + 飲食追蹤，基於科學增肌減脂藍圖。70-80% 1RM、RPE 監控、ACWR 工作負荷管理。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a0a",
+  "theme_color": "#ff6b1a",
+  "lang": "zh-TW",
+  "categories": ["health", "fitness", "lifestyle"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "今日記錄",
+      "short_name": "今日",
+      "url": "./?view=entry",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "訓練菜單",
+      "short_name": "課表",
+      "url": "./?view=program",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

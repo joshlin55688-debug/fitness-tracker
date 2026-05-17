@@ -105,6 +105,290 @@ body {
   letter-spacing: 0.05em;
 }
 
+/* --------- View tabs (top-level) --------- */
+.view-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  max-width: 720px;
+  margin: 0 auto 14px;
+  padding: 4px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.view-tab {
+  padding: 12px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s;
+  letter-spacing: 0.03em;
+}
+
+.view-tab:hover { color: var(--text); }
+
+.view-tab.active {
+  background: var(--accent-grad);
+  color: white;
+  box-shadow: var(--shadow-accent);
+}
+
+.view[hidden] { display: none; }
+
+/* --------- Day tabs (program view) --------- */
+.day-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  max-width: 720px;
+  margin: 0 auto 14px;
+  padding: 4px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.day-tab {
+  padding: 10px 4px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  letter-spacing: 0.02em;
+}
+
+.day-tab small {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--text-faint);
+  letter-spacing: 0;
+}
+
+.day-tab:hover { color: var(--text); }
+
+.day-tab.active {
+  background: var(--accent-grad);
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 107, 26, 0.3);
+}
+
+.day-tab.active small { color: rgba(255, 255, 255, 0.8); }
+
+/* --------- Day header --------- */
+.day-header {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.day-header h2 {
+  margin: 0;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-size: 1.15rem;
+  color: var(--text);
+  font-weight: 800;
+  display: block;
+}
+
+.day-meta {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* --------- Exercise list --------- */
+.exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.exercise {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  transition: border-color 0.15s;
+}
+
+.exercise:hover { border-color: var(--border-strong); }
+
+.ex-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.ex-num {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-faint);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.ex-name {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.ex-meta {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  gap: 16px 12px;
+  align-items: baseline;
+}
+
+.ex-target {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(255, 107, 26, 0.12), rgba(255, 140, 66, 0.04));
+  border: 1px solid rgba(255, 107, 26, 0.25);
+  border-radius: var(--radius-sm);
+  margin-top: 6px;
+}
+
+.ex-target-kg {
+  font-size: 1.6rem;
+  font-weight: 900;
+  background: var(--accent-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.ex-target-unit {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.ex-target-pct {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ex-spec {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+.ex-spec strong {
+  color: var(--text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ex-spec-icon {
+  color: var(--text-faint);
+  font-size: 0.95rem;
+}
+
+.ex-note {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+  color: var(--text-faint);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.ex-target-rpe {
+  font-size: 0.78rem;
+  color: var(--text-faint);
+  font-weight: 500;
+}
+
+.ex-target-rpe strong {
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+/* --------- Program notes --------- */
+.program-notes ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.program-notes li {
+  position: relative;
+  padding-left: 20px;
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.program-notes li::before {
+  content: "▸";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.program-notes li strong { color: var(--text); font-weight: 700; }
+
+/* --------- Settings section --------- */
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed var(--border);
+}
+
+.settings-section:last-of-type { border-bottom: none; }
+
+.settings-section h3 {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 2px;
+}
+
 /* --------- Main grid --------- */
 main {
   max-width: 720px;
@@ -749,4 +1033,15 @@ input[type=range]::-moz-range-thumb {
   .status-card { padding: 28px; }
   .status-icon { width: 90px; height: 90px; font-size: 3rem; }
   .status-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* Tablet+: exercise list two columns */
+@media (min-width: 768px) {
+  .exercise-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .day-header { grid-column: 1 / -1; }
+  .program-notes { grid-column: 1 / -1; }
 }
