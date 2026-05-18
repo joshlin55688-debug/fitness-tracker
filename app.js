@@ -528,9 +528,11 @@ function renderProgram() {
           <span class="ex-target-kg">${escapeHtml(t.label)}</span>
           ${t.sub ? `<span class="ex-target-pct">${escapeHtml(t.sub)}</span>` : ""}
         </div>
-        <div class="ex-spec"><span class="ex-spec-icon">×</span><strong>${escapeHtml(ex.setsReps)}</strong></div>
-        <div class="ex-spec"><span class="ex-spec-icon">⚡</span>RPE <strong>${ex.rpe}</strong></div>
-        <div class="ex-spec"><span class="ex-spec-icon">⏱</span>休 <strong>${escapeHtml(ex.rest)}</strong></div>
+        <div class="ex-specs">
+          <div class="ex-spec"><span class="ex-spec-icon">×</span><strong>${escapeHtml(ex.setsReps)}</strong></div>
+          <div class="ex-spec"><span class="ex-spec-icon">⚡</span>RPE <strong>${ex.rpe}</strong></div>
+          <div class="ex-spec"><span class="ex-spec-icon">⏱</span>休 <strong>${escapeHtml(ex.rest)}</strong></div>
+        </div>
       </div>
       ${ex.note ? `<div class="ex-note">${escapeHtml(ex.note)}</div>` : ""}
       <div class="set-log">

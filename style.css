@@ -57,7 +57,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 8px 0 16px;
-  max-width: 720px;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
@@ -98,7 +98,7 @@ body {
 }
 
 .date-strip {
-  max-width: 720px;
+  max-width: 1100px;
   margin: 0 auto 16px;
   color: var(--text-dim);
   font-size: 0.85rem;
@@ -110,7 +110,7 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
-  max-width: 720px;
+  max-width: 1100px;
   margin: 0 auto 14px;
   padding: 4px;
   background: var(--bg-card);
@@ -147,7 +147,7 @@ body {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 4px;
-  max-width: 720px;
+  max-width: 1100px;
   margin: 0 auto 14px;
   padding: 4px;
   background: var(--bg-card);
@@ -261,22 +261,27 @@ body {
 }
 
 .ex-meta {
-  display: grid;
-  grid-template-columns: auto auto auto;
-  gap: 16px 12px;
-  align-items: baseline;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .ex-target {
-  grid-column: 1 / -1;
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 10px;
   padding: 10px 14px;
   background: linear-gradient(135deg, rgba(255, 107, 26, 0.12), rgba(255, 140, 66, 0.04));
   border: 1px solid rgba(255, 107, 26, 0.25);
   border-radius: var(--radius-sm);
   margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.ex-specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
 }
 
 .ex-target-kg {
@@ -305,17 +310,19 @@ body {
 }
 
 .ex-spec {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-size: 0.82rem;
   color: var(--text-dim);
+  white-space: nowrap;
 }
 
 .ex-spec strong {
   color: var(--text);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .ex-spec-icon {
@@ -593,7 +600,7 @@ body {
 
 /* --------- Main grid --------- */
 main {
-  max-width: 720px;
+  max-width: 1100px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -1210,17 +1217,6 @@ input[type=range]::-moz-range-thumb {
 @media (min-width: 768px) {
   body { padding: 24px 32px 80px; }
 
-  main {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-
-  .status-card,
-  .actions,
-  .history,
-  .footer { grid-column: 1 / -1; }
-
   .ready-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1231,19 +1227,40 @@ input[type=range]::-moz-range-thumb {
   .modal-content { border-radius: 20px; max-height: 80vh; }
 }
 
+/* Wide desktop: split entry view into 2 columns */
 @media (min-width: 1024px) {
+  #entryView main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  #entryView .stats-card,
+  #entryView .status-card,
+  #entryView .actions,
+  #entryView .history,
+  #entryView .footer { grid-column: 1 / -1; }
+
   .status-card { padding: 28px; }
   .status-icon { width: 90px; height: 90px; font-size: 3rem; }
   .status-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
-/* Tablet+: exercise list two columns */
-@media (min-width: 768px) {
+/* Very wide desktop: exercise list two columns (cards ≥ 480px each) */
+@media (min-width: 1200px) {
   .exercise-list {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 14px;
   }
   .day-header { grid-column: 1 / -1; }
   .program-notes { grid-column: 1 / -1; }
+}
+
+/* Set-row: ensure inputs don't shrink below usable size */
+@media (max-width: 480px) {
+  .set-row {
+    grid-template-columns: 24px 1fr 1fr 1fr 20px;
+    gap: 4px;
+  }
+  .set-input { padding: 9px 4px; font-size: 0.9rem; }
 }

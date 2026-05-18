@@ -6,7 +6,7 @@
  *  - 版本更新時刪除舊快取
  */
 
-const CACHE_VERSION = "ft-v1.2.0";
+const CACHE_VERSION = "ft-v1.2.1";
 const PRECACHE_URLS = [
   "./",
   "./index.html",
