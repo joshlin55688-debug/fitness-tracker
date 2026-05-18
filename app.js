@@ -76,60 +76,90 @@ const PROGRAM = {
     title: "Day 1｜上肢推（水平 + 垂直）",
     meta: "強度 75% 1RM｜目標 RPE 8｜約 60 分",
     exercises: [
-      { name: "槓鈴平板臥推", setsReps: "4 × 6-8",  liftKey: "bench", pct: 0.75, rpe: 8,   rest: "2-3 分", note: "Full ROM 觸胸" },
-      { name: "坐姿槓鈴肩推",   setsReps: "4 × 8-10", liftKey: "ohp",   pct: 0.72, rpe: 8,   rest: "2 分",   note: "過頂鎖定" },
-      { name: "上斜啞鈴臥推 30°", setsReps: "3 × 8-10", fixed: 32.5,            rpe: 8,   rest: "90 秒",   note: "單手啞鈴 kg" },
-      { name: "雙槓撐體（加重）",  setsReps: "3 × 8-10", rpeOnly: true,           rpe: 8,   rest: "90 秒",   note: "剩 2 下保留量" },
-      { name: "繩索三頭下壓",    setsReps: "3 × 10-12", rpeOnly: true,           rpe: 8,   rest: "60 秒",   note: "肘穩定夾體側" },
-      { name: "啞鈴側平舉",     setsReps: "3 × 12-15", rpeOnly: true,           rpe: 9,   rest: "60 秒",   note: "單手 8-12 kg 起" },
+      { name: "槓鈴平板臥推", setsReps: "4 × 6-8",  liftKey: "bench", pct: 0.75, rpe: 8,   rest: "2-3 分", note: "Full ROM 觸胸",
+        videoQuery: "barbell bench press proper form" },
+      { name: "坐姿槓鈴肩推",   setsReps: "4 × 8-10", liftKey: "ohp",   pct: 0.72, rpe: 8,   rest: "2 分",   note: "過頂鎖定",
+        videoQuery: "seated barbell shoulder press form" },
+      { name: "上斜啞鈴臥推 30°", setsReps: "3 × 8-10", fixed: 32.5,            rpe: 8,   rest: "90 秒",   note: "單手啞鈴 kg",
+        videoQuery: "30 degree incline dumbbell bench press form" },
+      { name: "窄距槓鈴臥推",   setsReps: "3 × 8-10", liftKey: "bench", pct: 0.65, rpe: 8,   rest: "90 秒",   note: "肩寬內握距，肘貼體；三頭發力",
+        videoQuery: "close grip bench press form triceps" },
+      { name: "繩索三頭下壓",    setsReps: "3 × 10-12", rpeOnly: true,           rpe: 8,   rest: "60 秒",   note: "肘穩定夾體側",
+        videoQuery: "cable triceps pushdown proper form" },
+      { name: "啞鈴側平舉",     setsReps: "3 × 12-15", rpeOnly: true,           rpe: 9,   rest: "60 秒",   note: "單手 8-12 kg 起",
+        videoQuery: "dumbbell lateral raise proper form" },
     ],
   },
   "Day 2 腿A": {
     title: "Day 2｜下肢多關節（強攻第二型快縮肌）",
     meta: "強度 80% 1RM｜目標 RPE 8.5｜約 70 分",
     exercises: [
-      { name: "槓鈴背蹲（高槓）", setsReps: "4 × 5-6",   liftKey: "squat", pct: 0.80, rpe: 8.5, rest: "3 分",   note: "蹲至大腿平行以下" },
-      { name: "羅馬尼亞硬舉",    setsReps: "4 × 6-8",   liftKey: "rdl",   pct: 0.75, rpe: 8,   rest: "2-3 分", note: "膕繩拉伸感" },
-      { name: "保加利亞分腿蹲", setsReps: "3 × 8-10/邊", fixed: 22.5,             rpe: 8,   rest: "90 秒",   note: "單手啞鈴 kg" },
-      { name: "腿推 (Leg Press)",setsReps: "3 × 8-10",  rpeOnly: true,           rpe: 8,   rest: "2 分",   note: "大角度 ROM" },
-      { name: "坐姿腿彎舉",     setsReps: "3 × 10-12", rpeOnly: true,           rpe: 8,   rest: "60 秒",   note: "頂端 2 秒收縮" },
-      { name: "站姿提踵",      setsReps: "4 × 12-15", rpeOnly: true,           rpe: 9,   rest: "60 秒",   note: "完整下伸+頂端收縮" },
+      { name: "槓鈴背蹲（高槓）", setsReps: "4 × 5-6",   liftKey: "squat", pct: 0.80, rpe: 8.5, rest: "3 分",   note: "蹲至大腿平行以下",
+        videoQuery: "high bar back squat proper form" },
+      { name: "羅馬尼亞硬舉",    setsReps: "4 × 6-8",   liftKey: "rdl",   pct: 0.75, rpe: 8,   rest: "2-3 分", note: "膕繩拉伸感",
+        videoQuery: "romanian deadlift proper form" },
+      { name: "保加利亞分腿蹲", setsReps: "3 × 8-10/邊", fixed: 22.5,             rpe: 8,   rest: "90 秒",   note: "單手啞鈴 kg",
+        videoQuery: "bulgarian split squat dumbbell form" },
+      { name: "腿推 (Leg Press)",setsReps: "3 × 8-10",  rpeOnly: true,           rpe: 8,   rest: "2 分",   note: "大角度 ROM",
+        videoQuery: "leg press machine proper form" },
+      { name: "坐姿腿彎舉",     setsReps: "3 × 10-12", rpeOnly: true,           rpe: 8,   rest: "60 秒",   note: "頂端 2 秒收縮",
+        videoQuery: "seated leg curl machine form" },
+      { name: "站姿提踵",      setsReps: "4 × 12-15", rpeOnly: true,           rpe: 9,   rest: "60 秒",   note: "完整下伸+頂端收縮",
+        videoQuery: "standing calf raise form" },
     ],
   },
   "Day 4 拉": {
     title: "Day 4｜上肢拉（厚度 + 寬度）",
     meta: "強度 75% 1RM｜目標 RPE 8｜約 60 分",
     exercises: [
-      { name: "引體向上 / 滑輪下拉", setsReps: "4 × 6-8", liftKey: "bodyweight", rpe: 8, rest: "2-3 分", note: "起始全伸展；加重 = BW + X" },
-      { name: "槓鈴俯身划船",     setsReps: "4 × 6-8", liftKey: "row", pct: 0.75, rpe: 8, rest: "2 分", note: "軀幹 45°，拉至下腹" },
-      { name: "啞鈴單臂划船",     setsReps: "3 × 8-10/邊", fixed: 32.5,        rpe: 8, rest: "90 秒", note: "單手啞鈴 kg" },
-      { name: "繩索面拉",      setsReps: "3 × 12-15", rpeOnly: true,         rpe: 8, rest: "60 秒", note: "後束 + 旋轉肌群" },
-      { name: "槓鈴二頭彎舉",    setsReps: "3 × 8-10",  fixed: 30,              rpe: 8, rest: "90 秒", note: "EZ 桿或直槓" },
-      { name: "啞鈴錘式彎舉",    setsReps: "3 × 10-12", fixed: 14,              rpe: 8, rest: "60 秒", note: "單手啞鈴 kg" },
+      { name: "引體向上 / 滑輪下拉", setsReps: "4 × 6-8", liftKey: "bodyweight", rpe: 8, rest: "2-3 分", note: "起始全伸展；加重 = BW + X",
+        videoQuery: "pull up vs lat pulldown form" },
+      { name: "槓鈴俯身划船",     setsReps: "4 × 6-8", liftKey: "row", pct: 0.75, rpe: 8, rest: "2 分", note: "軀幹 45°，拉至下腹",
+        videoQuery: "barbell bent over row form" },
+      { name: "啞鈴單臂划船",     setsReps: "3 × 8-10/邊", fixed: 32.5,        rpe: 8, rest: "90 秒", note: "單手啞鈴 kg",
+        videoQuery: "one arm dumbbell row proper form" },
+      { name: "繩索面拉",      setsReps: "3 × 12-15", rpeOnly: true,         rpe: 8, rest: "60 秒", note: "後束 + 旋轉肌群",
+        videoQuery: "cable face pull form rear delts" },
+      { name: "槓鈴二頭彎舉",    setsReps: "3 × 8-10",  fixed: 30,              rpe: 8, rest: "90 秒", note: "EZ 桿或直槓",
+        videoQuery: "barbell biceps curl form" },
+      { name: "啞鈴錘式彎舉",    setsReps: "3 × 10-12", fixed: 14,              rpe: 8, rest: "60 秒", note: "單手啞鈴 kg",
+        videoQuery: "dumbbell hammer curl form" },
     ],
   },
   "Day 5 腿B": {
     title: "Day 5｜下肢功能性強化",
     meta: "強度 80% 1RM｜目標 RPE 9｜約 70 分",
     exercises: [
-      { name: "傳統硬舉",       setsReps: "4 × 4-6",   liftKey: "deadlift",   pct: 0.80, rpe: 9, rest: "3 分",   note: "槓貼小腿，背中立" },
-      { name: "前蹲 (Front Squat)", setsReps: "3 × 6-8", liftKey: "frontSquat", pct: 0.75, rpe: 8, rest: "2-3 分", note: "軀幹直立，肘高抬" },
-      { name: "槓鈴髖推",       setsReps: "4 × 8-10",  liftKey: "hipThrust",  pct: 0.80, rpe: 8, rest: "90 秒",   note: "頂端臀夾 1 秒" },
-      { name: "行走式弓步（DB）",  setsReps: "3 × 10 步/邊", fixed: 20,              rpe: 8, rest: "90 秒",   note: "單手啞鈴 kg" },
-      { name: "腿彎舉（機械）",   setsReps: "3 × 8-10",  rpeOnly: true,            rpe: 8, rest: "60 秒",   note: "離心 3-4 秒" },
-      { name: "坐姿提踵",       setsReps: "4 × 10-12", rpeOnly: true,            rpe: 9, rest: "60 秒",   note: "比目魚肌聚焦" },
+      { name: "傳統硬舉",       setsReps: "4 × 4-6",   liftKey: "deadlift",   pct: 0.80, rpe: 9, rest: "3 分",   note: "槓貼小腿，背中立",
+        videoQuery: "conventional deadlift proper form" },
+      { name: "前蹲 (Front Squat)", setsReps: "3 × 6-8", liftKey: "frontSquat", pct: 0.75, rpe: 8, rest: "2-3 分", note: "軀幹直立，肘高抬",
+        videoQuery: "front squat proper form" },
+      { name: "槓鈴髖推",       setsReps: "4 × 8-10",  liftKey: "hipThrust",  pct: 0.80, rpe: 8, rest: "90 秒",   note: "頂端臀夾 1 秒",
+        videoQuery: "barbell hip thrust proper form" },
+      { name: "行走式弓步（DB）",  setsReps: "3 × 10 步/邊", fixed: 20,              rpe: 8, rest: "90 秒",   note: "單手啞鈴 kg",
+        videoQuery: "walking lunge dumbbell form" },
+      { name: "腿彎舉（機械）",   setsReps: "3 × 8-10",  rpeOnly: true,            rpe: 8, rest: "60 秒",   note: "離心 3-4 秒",
+        videoQuery: "lying leg curl machine form" },
+      { name: "坐姿提踵",       setsReps: "4 × 10-12", rpeOnly: true,            rpe: 9, rest: "60 秒",   note: "比目魚肌聚焦",
+        videoQuery: "seated calf raise form" },
     ],
   },
   "方案A 全身": {
     title: "方案 A 備援｜全身效率型 — 每週 2-3 次",
     meta: "出差 / 減載 / 復健週使用｜≤ 60 分",
     exercises: [
-      { name: "槓鈴背蹲 或 硬舉",  setsReps: "3-4 × 6-8", liftKey: "squat", pct: 0.75, rpe: 7.5, rest: "2-3 分", note: "二擇一輪替" },
-      { name: "槓鈴臥推 或 雙槓撐體", setsReps: "3 × 6-8", liftKey: "bench", pct: 0.75, rpe: 7.5, rest: "2 分", note: "二擇一" },
-      { name: "槓鈴划船 或 引體向上", setsReps: "3 × 6-8", liftKey: "row", pct: 0.75, rpe: 7.5, rest: "2 分", note: "二擇一" },
-      { name: "肩推 或 滑輪下拉",   setsReps: "3 × 8-10", liftKey: "ohp", pct: 0.72, rpe: 7.5, rest: "90 秒", note: "二擇一" },
-      { name: "臀橋 / 髖推",      setsReps: "3 × 10",   rpeOnly: true,          rpe: 7,   rest: "90 秒",   note: "頂端夾臀" },
-      { name: "核心循環",       setsReps: "3 組 30-60 秒", rpeOnly: true,        rpe: 7,   rest: "30 秒",  note: "棒式 / 死蟲式 / 農夫走" },
+      { name: "槓鈴背蹲 或 硬舉",  setsReps: "3-4 × 6-8", liftKey: "squat", pct: 0.75, rpe: 7.5, rest: "2-3 分", note: "二擇一輪替",
+        videoQuery: "back squat vs deadlift form" },
+      { name: "槓鈴臥推",        setsReps: "3 × 6-8",   liftKey: "bench", pct: 0.75, rpe: 7.5, rest: "2 分",   note: "Full ROM 觸胸",
+        videoQuery: "barbell bench press proper form" },
+      { name: "槓鈴划船 或 引體向上", setsReps: "3 × 6-8", liftKey: "row", pct: 0.75, rpe: 7.5, rest: "2 分", note: "二擇一",
+        videoQuery: "barbell row vs pull up form" },
+      { name: "肩推 或 滑輪下拉",   setsReps: "3 × 8-10", liftKey: "ohp", pct: 0.72, rpe: 7.5, rest: "90 秒", note: "二擇一",
+        videoQuery: "shoulder press or lat pulldown form" },
+      { name: "臀橋 / 髖推",      setsReps: "3 × 10",   rpeOnly: true,          rpe: 7,   rest: "90 秒",   note: "頂端夾臀",
+        videoQuery: "glute bridge hip thrust form" },
+      { name: "核心循環",       setsReps: "3 組 30-60 秒", rpeOnly: true,        rpe: 7,   rest: "30 秒",  note: "棒式 / 死蟲式 / 農夫走",
+        videoQuery: "plank dead bug farmer carry core form" },
     ],
   },
 };
@@ -518,10 +548,18 @@ function renderProgram() {
         `</div>`
       : "";
 
+    const videoUrl = ex.videoQuery
+      ? `https://www.youtube.com/results?search_query=${encodeURIComponent(ex.videoQuery)}`
+      : null;
+    const videoBtn = videoUrl
+      ? `<a class="ex-video-btn" href="${videoUrl}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(ex.name)} 示範影片">▶ 示範</a>`
+      : "";
+
     card.innerHTML = `
       <div class="ex-head">
         <div class="ex-num">${String(i + 1).padStart(2, "0")}</div>
         <div class="ex-name">${escapeHtml(ex.name)}${prBadge}</div>
+        ${videoBtn}
       </div>
       <div class="ex-meta">
         <div class="ex-target">

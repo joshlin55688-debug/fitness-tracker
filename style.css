@@ -233,10 +233,40 @@ body {
 
 .ex-head {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 10px;
+}
+
+.ex-video-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 11px;
+  border-radius: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+}
+
+.ex-video-btn:hover {
+  background: var(--accent-grad);
+  border-color: transparent;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(255, 107, 26, 0.3);
+}
+
+.ex-video-btn:active {
+  transform: translateY(0);
 }
 
 .ex-num {
