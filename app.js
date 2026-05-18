@@ -1,4 +1,4 @@
-/* Fitness Tracker — Daily entry, training program, LocalStorage, optional Sheet sync */
+/* Fitness Tracker — Daily entry, training program, set logging, PR tracking, sparklines */
 
 const $ = id => document.getElementById(id);
 const $$ = sel => document.querySelectorAll(sel);
@@ -25,6 +25,17 @@ const DEFAULT_1RM = {
   hipThrust: 145,
 };
 
+const LIFT_LABEL = {
+  bench: "臥推",
+  squat: "背蹲",
+  deadlift: "硬舉",
+  ohp: "肩推",
+  row: "划船",
+  frontSquat: "前蹲",
+  rdl: "羅馬尼亞硬舉",
+  hipThrust: "髖推",
+};
+
 const DEFAULT_SETTINGS = {
   appsScriptUrl: "",
   bodyweight: 90,
@@ -46,6 +57,7 @@ const DEFAULT_TODAY = () => ({
   carbs: 0,
   weight: "",
   notes: "",
+  sets: {},  // { exerciseName: [{w, r, rpe}, ...] }
 });
 
 const READY_KEYS = ["sleep", "soreness", "mood", "appetite"];
@@ -59,7 +71,6 @@ function isTraining(t) {
 }
 
 // ---------- Program data ----------
-// liftKey 對應 settings.rm 的 key；無則 fixed/RPE 控
 const PROGRAM = {
   "Day 1 推": {
     title: "Day 1｜上肢推（水平 + 垂直）",
@@ -123,8 +134,23 @@ const PROGRAM = {
   },
 };
 
+// ---------- Parsing helpers ----------
 function mround(v, step) {
   return Math.round(v / step) * step;
+}
+
+function parseSetCount(setsReps) {
+  // "4 × 6-8" → 4 ;  "3-4 × 6-8" → 3 (use lower)
+  const m = setsReps.match(/^(\d+)(?:-(\d+))?/);
+  return m ? parseInt(m[1], 10) : 3;
+}
+
+function parseTargetReps(setsReps) {
+  // "4 × 6-8" → 7  (midpoint, rounded down)
+  const m = setsReps.match(/×\s*(\d+)(?:-(\d+))?/);
+  if (!m) return 8;
+  if (m[2]) return Math.floor((parseInt(m[1], 10) + parseInt(m[2], 10)) / 2);
+  return parseInt(m[1], 10);
 }
 
 function targetWeight(ex, rmMap) {
@@ -132,19 +158,30 @@ function targetWeight(ex, rmMap) {
   if (ex.rpeOnly) return { kg: null, label: "RPE 控", sub: "" };
   if (ex.liftKey === "bodyweight") return { kg: null, label: "BW + 0", sub: "可加重" };
   if (ex.liftKey && rmMap[ex.liftKey] != null && ex.pct != null) {
-    const raw = rmMap[ex.liftKey] * ex.pct;
-    const rounded = mround(raw, 2.5);
+    const rounded = mround(rmMap[ex.liftKey] * ex.pct, 2.5);
     const pct = Math.round(ex.pct * 100);
     return { kg: rounded, label: `${rounded} kg`, sub: `${pct}% × ${rmMap[ex.liftKey]}` };
   }
   return { kg: null, label: "—", sub: "" };
 }
 
+// ---------- 1RM estimation ----------
+function est1RM(w, r) {
+  w = parseFloat(w) || 0;
+  r = parseInt(r, 10) || 0;
+  if (w <= 0 || r < 1) return 0;
+  if (r === 1) return w;
+  if (r <= 10) return w / (1.0278 - 0.0278 * r);  // Brzycki
+  return w * (1 + r / 30);                          // Epley for higher reps
+}
+
 // ---------- State ----------
 let settings = loadSettings();
 let today = loadToday();
+let pr = loadPR();
 let currentView = "entry";
 let currentDay = "Day 1 推";
+let prDismissedThisSession = {};
 
 function loadSettings() {
   try {
@@ -167,12 +204,34 @@ function loadToday() {
   return DEFAULT_TODAY();
 }
 
-function persistSettings() {
-  localStorage.setItem("ft_settings", JSON.stringify(settings));
+function loadPR() {
+  try {
+    return JSON.parse(localStorage.getItem("ft_pr") || "{}");
+  } catch {
+    return {};
+  }
 }
 
-function persistToday() {
-  localStorage.setItem(`ft_day_${DATE_STR}`, JSON.stringify(today));
+function persistSettings() { localStorage.setItem("ft_settings", JSON.stringify(settings)); }
+function persistToday()    { localStorage.setItem(`ft_day_${DATE_STR}`, JSON.stringify(today)); }
+function persistPR()       { localStorage.setItem("ft_pr", JSON.stringify(pr)); }
+
+// ---------- Previous session lookup ----------
+function findLastSession(dayType, exerciseName) {
+  for (let i = 1; i <= 60; i++) {
+    const d = new Date(TODAY);
+    d.setDate(d.getDate() - i);
+    const key = `ft_day_${toDateStr(d)}`;
+    const raw = localStorage.getItem(key);
+    if (!raw) continue;
+    try {
+      const obj = JSON.parse(raw);
+      if (obj.trainingType === dayType && obj.sets?.[exerciseName]?.length > 0) {
+        return { date: obj.date, sets: obj.sets[exerciseName] };
+      }
+    } catch {}
+  }
+  return null;
 }
 
 // ---------- Derived calculations ----------
@@ -244,6 +303,7 @@ function renderEntry() {
   $("mPts").textContent = points || "—";
   $("mReady").textContent = ready;
 
+  renderStats();
   renderHistory();
 }
 
@@ -251,15 +311,7 @@ function renderHistory() {
   const list = $("historyList");
   list.innerHTML = "";
 
-  const records = [];
-  for (let i = 0; i < 14; i++) {
-    const d = new Date(TODAY);
-    d.setDate(d.getDate() - i);
-    const key = `ft_day_${toDateStr(d)}`;
-    const raw = localStorage.getItem(key);
-    if (!raw) continue;
-    try { records.push({ d, data: { ...DEFAULT_TODAY(), ...JSON.parse(raw) } }); } catch {}
-  }
+  const records = collectRecentDays(14);
 
   if (records.length === 0) {
     list.innerHTML = '<div class="empty">尚無紀錄</div>';
@@ -292,6 +344,124 @@ function renderHistory() {
   });
 }
 
+function collectRecentDays(n) {
+  const records = [];
+  for (let i = 0; i < n; i++) {
+    const d = new Date(TODAY);
+    d.setDate(d.getDate() - i);
+    const key = `ft_day_${toDateStr(d)}`;
+    const raw = localStorage.getItem(key);
+    if (!raw) continue;
+    try { records.push({ d, data: { ...DEFAULT_TODAY(), ...JSON.parse(raw) } }); } catch {}
+  }
+  return records;
+}
+
+// ---------- Weekly stats / sparklines ----------
+function renderStats() {
+  const days = 7;
+  const points = [];
+  const kcals = [];
+  const proteins = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(TODAY);
+    d.setDate(d.getDate() - i);
+    const key = `ft_day_${toDateStr(d)}`;
+    const raw = localStorage.getItem(key);
+    if (!raw) {
+      points.push(null);
+      kcals.push(null);
+      proteins.push(null);
+      continue;
+    }
+    try {
+      const obj = JSON.parse(raw);
+      points.push((obj.duration || 0) * (obj.srpe || 0));
+      const k = (obj.protein || 0) * 4 + (obj.fat || 0) * 9 + (obj.carbs || 0) * 4;
+      kcals.push(k > 0 ? k : null);
+      proteins.push(obj.protein > 0 ? obj.protein : null);
+    } catch {
+      points.push(null); kcals.push(null); proteins.push(null);
+    }
+  }
+
+  const ptsSum = points.reduce((s, v) => s + (v || 0), 0);
+  const kcalAvg = avgIgnoreNull(kcals);
+  const proteinAvg = avgIgnoreNull(proteins);
+
+  $("statPointsSpark").innerHTML = sparkline(points, { width: 130, height: 30, color: "url(#sparkGrad)" });
+  $("statKcalSpark").innerHTML   = sparkline(kcals,  { width: 130, height: 30, color: "url(#sparkGrad)", target: settings.kcalTrainTarget });
+  $("statProteinSpark").innerHTML = sparkline(proteins, { width: 130, height: 30, color: "url(#sparkGrad)", target: settings.proteinTarget });
+
+  $("statPointsVal").textContent = ptsSum ? `累計 ${ptsSum}` : "—";
+  $("statKcalVal").textContent   = kcalAvg ? `平均 ${kcalAvg}` : "—";
+  $("statProteinVal").textContent = proteinAvg ? `平均 ${proteinAvg} g` : "—";
+}
+
+function avgIgnoreNull(arr) {
+  const valid = arr.filter(v => v != null && v > 0);
+  if (valid.length === 0) return null;
+  return Math.round(valid.reduce((s, v) => s + v, 0) / valid.length);
+}
+
+function sparkline(values, opts = {}) {
+  const w = opts.width || 140;
+  const h = opts.height || 32;
+  const pad = 3;
+  const valid = values.filter(v => v != null && v > 0);
+  if (valid.length < 2) {
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><text x="${w / 2}" y="${h / 2 + 3}" fill="#555" text-anchor="middle" font-size="10">資料不足</text></svg>`;
+  }
+  const min = Math.min(...valid);
+  const max = Math.max(...valid, opts.target ?? -Infinity);
+  const range = (max - min) || 1;
+  const xStep = (w - pad * 2) / (values.length - 1);
+  const yOf = v => h - pad - ((v - min) / range) * (h - pad * 2);
+
+  // Build path with gaps
+  let segments = [];
+  let cur = "";
+  values.forEach((v, i) => {
+    const x = pad + i * xStep;
+    if (v == null) {
+      if (cur) segments.push(cur);
+      cur = "";
+      return;
+    }
+    cur += (cur ? " L " : "M ") + x.toFixed(1) + " " + yOf(v).toFixed(1);
+  });
+  if (cur) segments.push(cur);
+
+  // Target dashed line
+  let targetLine = "";
+  if (opts.target != null && opts.target >= min && opts.target <= max) {
+    const ty = yOf(opts.target);
+    targetLine = `<line x1="0" y1="${ty.toFixed(1)}" x2="${w}" y2="${ty.toFixed(1)}" stroke="#5a5a5a" stroke-dasharray="2,3" stroke-width="0.8"/>`;
+  }
+
+  // Last point dot
+  const lastIdx = values.length - 1;
+  const lastVal = values[lastIdx];
+  let lastDot = "";
+  if (lastVal != null && lastVal > 0) {
+    const x = pad + lastIdx * xStep;
+    const y = yOf(lastVal);
+    lastDot = `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.5" fill="#ff6b1a"/>`;
+  }
+
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <defs>
+      <linearGradient id="sparkGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#ff6b1a"/>
+        <stop offset="100%" stop-color="#ff8c42"/>
+      </linearGradient>
+    </defs>
+    ${targetLine}
+    ${segments.map(s => `<path d="${s}" fill="none" stroke="url(#sparkGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`).join("")}
+    ${lastDot}
+  </svg>`;
+}
+
 // ---------- Render: program view ----------
 function renderProgram() {
   const day = PROGRAM[currentDay];
@@ -308,10 +478,50 @@ function renderProgram() {
     const t = targetWeight(ex, settings.rm);
     const card = document.createElement("article");
     card.className = "exercise";
+    card.dataset.exercise = ex.name;
+    const setCount = parseSetCount(ex.setsReps);
+    const sets = today.sets?.[ex.name] || [];
+    // Ensure array length matches expected
+    while (sets.length < setCount) sets.push({ w: "", r: "", rpe: "" });
+
+    const last = findLastSession(currentDay, ex.name);
+    const targetReps = parseTargetReps(ex.setsReps);
+
+    // PR badge
+    let prBadge = "";
+    if (ex.liftKey && ex.liftKey !== "bodyweight" && settings.rm[ex.liftKey]) {
+      const maxEst = sets.reduce((m, s) => Math.max(m, est1RM(s.w, s.r)), 0);
+      if (maxEst > settings.rm[ex.liftKey] + 1) {
+        prBadge = `<span class="pr-badge" data-lift="${ex.liftKey}" data-est="${Math.round(maxEst)}" title="點擊更新 1RM 設定">🏆 ${Math.round(maxEst)}kg</span>`;
+      }
+    }
+
+    const setRowsHtml = sets.map((s, idx) => {
+      const placeholderW = t.kg ?? last?.sets[idx]?.w ?? "";
+      const placeholderR = last?.sets[idx]?.r ?? targetReps;
+      const placeholderRpe = last?.sets[idx]?.rpe ?? ex.rpe;
+      const done = s.w && s.r && s.rpe;
+      return `
+        <div class="set-row ${done ? "done" : ""}">
+          <div class="set-num">${idx + 1}</div>
+          <input type="number" inputmode="decimal" class="set-input" data-ex="${escapeAttr(ex.name)}" data-idx="${idx}" data-field="w" value="${s.w || ""}" placeholder="${placeholderW}" step="0.5">
+          <input type="number" inputmode="numeric" class="set-input" data-ex="${escapeAttr(ex.name)}" data-idx="${idx}" data-field="r" value="${s.r || ""}" placeholder="${placeholderR}" step="1">
+          <input type="number" inputmode="decimal" class="set-input" data-ex="${escapeAttr(ex.name)}" data-idx="${idx}" data-field="rpe" value="${s.rpe || ""}" placeholder="${placeholderRpe}" step="0.5">
+          <div class="set-status">${done ? "✓" : ""}</div>
+        </div>
+      `;
+    }).join("");
+
+    const lastHint = last
+      ? `<div class="ex-last-hint">📅 上次 ${last.date.slice(5)}：` +
+        last.sets.map(x => `${x.w}×${x.r}@${x.rpe}`).filter(s => s !== "×@").join(" / ") +
+        `</div>`
+      : "";
+
     card.innerHTML = `
       <div class="ex-head">
         <div class="ex-num">${String(i + 1).padStart(2, "0")}</div>
-        <div class="ex-name">${escapeHtml(ex.name)}</div>
+        <div class="ex-name">${escapeHtml(ex.name)}${prBadge}</div>
       </div>
       <div class="ex-meta">
         <div class="ex-target">
@@ -323,15 +533,122 @@ function renderProgram() {
         <div class="ex-spec"><span class="ex-spec-icon">⏱</span>休 <strong>${escapeHtml(ex.rest)}</strong></div>
       </div>
       ${ex.note ? `<div class="ex-note">${escapeHtml(ex.note)}</div>` : ""}
+      <div class="set-log">
+        <div class="set-log-head">
+          <span class="set-log-title">本次紀錄</span>
+          <button class="set-add-btn" data-ex="${escapeAttr(ex.name)}" type="button">＋ 加組</button>
+        </div>
+        <div class="set-log-grid">
+          <div class="set-row set-row-head">
+            <div class="set-num">#</div>
+            <div>kg</div>
+            <div>次</div>
+            <div>RPE</div>
+            <div></div>
+          </div>
+          ${setRowsHtml}
+        </div>
+        ${lastHint}
+      </div>
     `;
     list.appendChild(card);
   });
+
+  // Wire up set inputs
+  $$("#exerciseList .set-input").forEach(inp => {
+    inp.addEventListener("input", onSetInput);
+    inp.addEventListener("blur", onSetBlur);
+  });
+  $$("#exerciseList .set-add-btn").forEach(btn => {
+    btn.addEventListener("click", () => addSet(btn.dataset.ex));
+  });
+  $$("#exerciseList .pr-badge").forEach(b => {
+    b.addEventListener("click", () => promptPRUpdate(b.dataset.lift, parseFloat(b.dataset.est)));
+  });
 }
 
+function onSetInput(e) {
+  const exName = e.target.dataset.ex;
+  const idx = parseInt(e.target.dataset.idx, 10);
+  const field = e.target.dataset.field;
+  if (!today.sets[exName]) today.sets[exName] = [];
+  while (today.sets[exName].length <= idx) today.sets[exName].push({ w: "", r: "", rpe: "" });
+  const val = e.target.value === "" ? "" : parseFloat(e.target.value);
+  today.sets[exName][idx][field] = Number.isFinite(val) ? val : "";
+  persistToday();
+  // Toggle row "done" class live
+  const row = e.target.closest(".set-row");
+  if (row) {
+    const s = today.sets[exName][idx];
+    const done = s.w && s.r && s.rpe;
+    row.classList.toggle("done", !!done);
+    row.querySelector(".set-status").textContent = done ? "✓" : "";
+  }
+}
+
+function onSetBlur(e) {
+  // Check for PR after user finishes typing a value
+  checkPRForCurrentDay();
+}
+
+function addSet(exName) {
+  if (!today.sets[exName]) today.sets[exName] = [];
+  today.sets[exName].push({ w: "", r: "", rpe: "" });
+  persistToday();
+  renderProgram();
+}
+
+// ---------- PR detection ----------
+function checkPRForCurrentDay() {
+  const day = PROGRAM[currentDay];
+  if (!day) return;
+  let updated = false;
+  day.exercises.forEach(ex => {
+    if (!ex.liftKey || ex.liftKey === "bodyweight") return;
+    const sets = today.sets[ex.name] || [];
+    if (sets.length === 0) return;
+    const maxEst = sets.reduce((m, s) => Math.max(m, est1RM(s.w, s.r)), 0);
+    if (maxEst <= 0) return;
+    const stored = pr[ex.liftKey]?.value || 0;
+    if (maxEst > stored) {
+      pr[ex.liftKey] = {
+        value: Math.round(maxEst * 10) / 10,
+        date: DATE_STR,
+        from: { w: 0, r: 0, rpe: 0 },
+      };
+      // Find which set produced it
+      sets.forEach(s => {
+        if (est1RM(s.w, s.r) === maxEst) pr[ex.liftKey].from = { ...s };
+      });
+      updated = true;
+    }
+  });
+  if (updated) {
+    persistPR();
+    renderProgram();
+  }
+}
+
+function promptPRUpdate(liftKey, newEst) {
+  const cur = settings.rm[liftKey] || 0;
+  const label = LIFT_LABEL[liftKey] || liftKey;
+  const msg = `🏆 新 PR 偵測！\n\n${label}：估計 1RM = ${newEst}kg（原設定 ${cur}kg）\n\n要把設定的 1RM 更新到 ${newEst}kg 嗎？\n（訓練菜單的目標重量會跟著重算）`;
+  if (confirm(msg)) {
+    settings.rm[liftKey] = newEst;
+    persistSettings();
+    renderProgram();
+    toast(`✓ ${label} 1RM 已更新為 ${newEst}kg`, "success");
+  }
+}
+
+// ---------- Escape helpers ----------
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, m => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
   }[m]));
+}
+function escapeAttr(s) {
+  return String(s).replace(/"/g, "&quot;");
 }
 
 // ---------- View switching ----------
@@ -347,7 +664,6 @@ function switchView(view) {
   });
   if (view === "program") renderProgram();
   if (view === "entry") renderEntry();
-  // Persist view in URL (shallow)
   const url = new URL(window.location.href);
   url.searchParams.set("view", view);
   history.replaceState({}, "", url.toString());
@@ -360,16 +676,13 @@ function switchDay(day) {
 
 // ---------- Events ----------
 function setupEvents() {
-  // View tabs
   $$(".view-tab").forEach(t => {
     t.addEventListener("click", () => switchView(t.dataset.view));
   });
-  // Day tabs
   $$(".day-tab").forEach(t => {
     t.addEventListener("click", () => switchDay(t.dataset.day));
   });
 
-  // Training chips
   $$(".chip").forEach(c => {
     c.addEventListener("click", () => {
       today.trainingType = today.trainingType === c.dataset.value ? "" : c.dataset.value;
@@ -378,7 +691,6 @@ function setupEvents() {
     });
   });
 
-  // Number inputs
   ["duration", "srpe", "protein", "fat", "carbs"].forEach(id => {
     $(id).addEventListener("input", e => {
       today[id] = parseFloat(e.target.value) || 0;
@@ -398,7 +710,6 @@ function setupEvents() {
     persistToday();
   });
 
-  // Steppers (entry view)
   $$("#entryView .stepper button").forEach(b => {
     b.addEventListener("click", () => {
       const t = b.dataset.target;
@@ -410,7 +721,6 @@ function setupEvents() {
     });
   });
 
-  // Ready sliders
   READY_KEYS.forEach((k, i) => {
     $(`r${i + 1}`).addEventListener("input", e => {
       today.ready[k] = parseInt(e.target.value, 10);
@@ -419,7 +729,6 @@ function setupEvents() {
     });
   });
 
-  // Action buttons
   $("saveBtn").addEventListener("click", () => {
     persistToday();
     renderEntry();
@@ -448,16 +757,19 @@ function exportCSV() {
     "日期", "訓練類型", "時長(分)", "S-RPE", "點數",
     "睡眠", "痠痛", "心情", "食慾", "Ready",
     "蛋白質(g)", "脂肪(g)", "碳水(g)", "熱量",
-    "體重(kg)", "備註",
+    "體重(kg)", "備註", "組數紀錄",
   ];
   const rows = [headers];
   days.forEach(d => {
     const { kcal, points, ready } = compute(d);
+    const setsStr = Object.entries(d.sets || {}).map(([name, sets]) => {
+      return name + ":" + sets.map(s => `${s.w}×${s.r}@${s.rpe}`).join("|");
+    }).join(" || ");
     rows.push([
       d.date, d.trainingType, d.duration, d.srpe, points,
       d.ready.sleep, d.ready.soreness, d.ready.mood, d.ready.appetite, ready,
       d.protein, d.fat, d.carbs, kcal,
-      d.weight, d.notes,
+      d.weight, d.notes, setsStr,
     ]);
   });
 
@@ -516,6 +828,7 @@ async function syncToSheet() {
     kcal,
     weight: today.weight,
     notes: today.notes,
+    sets: today.sets || {},
   };
   try {
     await fetch(settings.appsScriptUrl, {
@@ -537,7 +850,6 @@ function openSettings() {
   $("proteinTarget").value = settings.proteinTarget;
   $("kcalTrainTarget").value = settings.kcalTrainTarget;
   $("kcalRestTarget").value = settings.kcalRestTarget;
-  // 1RM fields
   Object.keys(DEFAULT_1RM).forEach(k => {
     const el = $(`rm_${k}`);
     if (el) el.value = settings.rm[k] ?? "";
@@ -574,11 +886,12 @@ function clearAll() {
   const keys = [];
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
-    if (k && (k.startsWith("ft_day_") || k === "ft_settings")) keys.push(k);
+    if (k && (k.startsWith("ft_day_") || k === "ft_settings" || k === "ft_pr")) keys.push(k);
   }
   keys.forEach(k => localStorage.removeItem(k));
   settings = loadSettings();
   today = loadToday();
+  pr = loadPR();
   closeSettings();
   renderEntry();
   renderProgram();
@@ -599,8 +912,6 @@ function toast(msg, type = "") {
 
 // ---------- Boot ----------
 setupEvents();
-
-// Initial view from ?view= (manifest shortcuts use this)
 const urlParams = new URLSearchParams(window.location.search);
 const initialView = urlParams.get("view");
 switchView(initialView === "program" ? "program" : "entry");

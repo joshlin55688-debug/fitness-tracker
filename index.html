@@ -35,6 +35,26 @@
     <div class="date-strip" id="todayDate">—</div>
 
     <main>
+      <!-- Weekly stats / sparklines -->
+      <section class="stats-card">
+        <h2>本週統計 <span class="hint">近 7 日</span></h2>
+        <div class="spark-row">
+          <span class="spark-label">訓練點數</span>
+          <span class="spark-svg" id="statPointsSpark"></span>
+          <span class="spark-val" id="statPointsVal">—</span>
+        </div>
+        <div class="spark-row">
+          <span class="spark-label">熱量</span>
+          <span class="spark-svg" id="statKcalSpark"></span>
+          <span class="spark-val" id="statKcalVal">—</span>
+        </div>
+        <div class="spark-row">
+          <span class="spark-label">蛋白質</span>
+          <span class="spark-svg" id="statProteinSpark"></span>
+          <span class="spark-val" id="statProteinVal">—</span>
+        </div>
+      </section>
+
       <!-- Status card -->
       <section class="status-card">
         <div class="status-icon" id="statusIcon" data-state="empty">—</div>
