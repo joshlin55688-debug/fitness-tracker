@@ -38,13 +38,39 @@ const LIFT_LABEL = {
 
 const DEFAULT_SETTINGS = {
   appsScriptUrl: "",
-  bodyweight: 90,
-  proteinTarget: 180,
-  fatTarget: 81,
-  kcalTrainTarget: 2866,
-  kcalRestTarget: 2666,
+  bodyweight: 80,
+  proteinTarget: 175,
+  fatTarget: 70,
+  kcalTrainTarget: 2300,
+  kcalRestTarget: 2100,
+  maxHR: 186,
   rm: { ...DEFAULT_1RM },
 };
+
+// ---------- Cardio Zones (HR-based, Gemini plan) ----------
+const ZONES = [
+  { id: 1, label: "Zone 1 極輕度",   pctMin: 0.50, pctMax: 0.60, fatPct: "70-85%", carbPct: "15-30%",
+    feel: "可毫不費力聊天",         use: "熱身 / 動態恢復" },
+  { id: 2, label: "Zone 2 輕度",     pctMin: 0.60, pctMax: 0.70, fatPct: "60-70%", carbPct: "30-40%",
+    feel: "可講完整句子，講完想吸氣", use: "燃脂 / 有氧底子（主力）" },
+  { id: 3, label: "Zone 3 中度",     pctMin: 0.70, pctMax: 0.80, fatPct: "35-50%", carbPct: "50-65%",
+    feel: "只能講短詞，呼吸變深",     use: "心肺強化 / 灰色地帶" },
+  { id: 4, label: "Zone 4 高強度",   pctMin: 0.80, pctMax: 0.90, fatPct: "10-20%", carbPct: "80-90%",
+    feel: "吃力，幾乎無法講話",       use: "乳酸閾值 / 4x4 衝刺段" },
+  { id: 5, label: "Zone 5 極限",     pctMin: 0.90, pctMax: 1.00, fatPct: "<5%",   carbPct: ">95%",
+    feel: "極度費力，僅維持幾分",     use: "VO2 Max / 全力衝刺" },
+];
+
+// Zone 2 sweet spot (Iñigo San Millán): 64-69% MHR
+const Z2_SWEET = { pctMin: 0.645, pctMax: 0.69 };
+
+function zoneBpm(zone, maxHR) {
+  return { min: Math.round(zone.pctMin * maxHR), max: Math.round(zone.pctMax * maxHR) };
+}
+
+function z2Sweet(maxHR) {
+  return { min: Math.round(Z2_SWEET.pctMin * maxHR), max: Math.round(Z2_SWEET.pctMax * maxHR) };
+}
 
 const DEFAULT_TODAY = () => ({
   date: DATE_STR,
@@ -61,8 +87,9 @@ const DEFAULT_TODAY = () => ({
 });
 
 const READY_KEYS = ["sleep", "soreness", "mood", "appetite"];
-const TRAINING_PREFIXES = ["Day 1", "Day 2", "Day 4", "Day 5"];
-const TRAINING_EXACT = ["方案A 全身"];
+const TRAINING_PREFIXES = ["模組 A", "模組 B", "模組 C"];
+const TRAINING_EXACT = ["坡度快走", "挪威 4x4"];
+const REST_TYPES = ["帶小孩", "休息", "輪班工作"];
 
 function isTraining(t) {
   if (!t) return false;
@@ -70,96 +97,73 @@ function isTraining(t) {
   return TRAINING_PREFIXES.some(p => t.startsWith(p));
 }
 
-// ---------- Program data ----------
+// ---------- Program data (Gemini's modular plan for shift workers) ----------
+// 滾動制：放假就抽下一個模組來練（A → B → C → A）
 const PROGRAM = {
-  "Day 1 推": {
-    title: "Day 1｜上肢推（水平 + 垂直）",
-    meta: "強度 75% 1RM｜目標 RPE 8｜約 60 分",
+  "模組 A 全身": {
+    title: "模組 A｜全身大重量",
+    meta: "肌肉量防線｜約 60 分｜無有氧",
     exercises: [
-      { name: "槓鈴平板臥推", setsReps: "4 × 6-8",  liftKey: "bench", pct: 0.75, rpe: 8,   rest: "2-3 分", note: "Full ROM 觸胸",
-        videoQuery: "barbell bench press proper form" },
-      { name: "坐姿槓鈴肩推",   setsReps: "4 × 8-10", liftKey: "ohp",   pct: 0.72, rpe: 8,   rest: "2 分",   note: "過頂鎖定",
-        videoQuery: "seated barbell shoulder press form" },
-      { name: "上斜啞鈴臥推 30°", setsReps: "3 × 8-10", fixed: 32.5,            rpe: 8,   rest: "90 秒",   note: "單手啞鈴 kg",
-        videoQuery: "30 degree incline dumbbell bench press form" },
-      { name: "窄距槓鈴臥推",   setsReps: "3 × 8-10", liftKey: "bench", pct: 0.65, rpe: 8,   rest: "90 秒",   note: "肩寬內握距，肘貼體；三頭發力",
-        videoQuery: "close grip bench press form triceps" },
-      { name: "繩索三頭下壓",    setsReps: "3 × 10-12", rpeOnly: true,           rpe: 8,   rest: "60 秒",   note: "肘穩定夾體側",
-        videoQuery: "cable triceps pushdown proper form" },
-      { name: "啞鈴側平舉",     setsReps: "3 × 12-15", rpeOnly: true,           rpe: 9,   rest: "60 秒",   note: "單手 8-12 kg 起",
-        videoQuery: "dumbbell lateral raise proper form" },
-    ],
-  },
-  "Day 2 腿A": {
-    title: "Day 2｜下肢多關節（強攻第二型快縮肌）",
-    meta: "強度 80% 1RM｜目標 RPE 8.5｜約 70 分",
-    exercises: [
-      { name: "槓鈴背蹲（高槓）", setsReps: "4 × 5-6",   liftKey: "squat", pct: 0.80, rpe: 8.5, rest: "3 分",   note: "蹲至大腿平行以下",
+      { name: "槓鈴背蹲（高槓）", setsReps: "4 × 6-8", liftKey: "squat", pct: 0.75, rpe: 8, rest: "3 分",
+        note: "全程幅度，蹲至大腿平行以下",
         videoQuery: "high bar back squat proper form" },
-      { name: "羅馬尼亞硬舉",    setsReps: "4 × 6-8",   liftKey: "rdl",   pct: 0.75, rpe: 8,   rest: "2-3 分", note: "膕繩拉伸感",
-        videoQuery: "romanian deadlift proper form" },
-      { name: "保加利亞分腿蹲", setsReps: "3 × 8-10/邊", fixed: 22.5,             rpe: 8,   rest: "90 秒",   note: "單手啞鈴 kg",
-        videoQuery: "bulgarian split squat dumbbell form" },
-      { name: "腿推 (Leg Press)",setsReps: "3 × 8-10",  rpeOnly: true,           rpe: 8,   rest: "2 分",   note: "大角度 ROM",
-        videoQuery: "leg press machine proper form" },
-      { name: "坐姿腿彎舉",     setsReps: "3 × 10-12", rpeOnly: true,           rpe: 8,   rest: "60 秒",   note: "頂端 2 秒收縮",
-        videoQuery: "seated leg curl machine form" },
-      { name: "站姿提踵",      setsReps: "4 × 12-15", rpeOnly: true,           rpe: 9,   rest: "60 秒",   note: "完整下伸+頂端收縮",
-        videoQuery: "standing calf raise form" },
-    ],
-  },
-  "Day 4 拉": {
-    title: "Day 4｜上肢拉（厚度 + 寬度）",
-    meta: "強度 75% 1RM｜目標 RPE 8｜約 60 分",
-    exercises: [
-      { name: "引體向上 / 滑輪下拉", setsReps: "4 × 6-8", liftKey: "bodyweight", rpe: 8, rest: "2-3 分", note: "起始全伸展；加重 = BW + X",
-        videoQuery: "pull up vs lat pulldown form" },
-      { name: "槓鈴俯身划船",     setsReps: "4 × 6-8", liftKey: "row", pct: 0.75, rpe: 8, rest: "2 分", note: "軀幹 45°，拉至下腹",
-        videoQuery: "barbell bent over row form" },
-      { name: "啞鈴單臂划船",     setsReps: "3 × 8-10/邊", fixed: 32.5,        rpe: 8, rest: "90 秒", note: "單手啞鈴 kg",
-        videoQuery: "one arm dumbbell row proper form" },
-      { name: "繩索面拉",      setsReps: "3 × 12-15", rpeOnly: true,         rpe: 8, rest: "60 秒", note: "後束 + 旋轉肌群",
-        videoQuery: "cable face pull form rear delts" },
-      { name: "槓鈴二頭彎舉",    setsReps: "3 × 8-10",  fixed: 30,              rpe: 8, rest: "90 秒", note: "EZ 桿或直槓",
-        videoQuery: "barbell biceps curl form" },
-      { name: "啞鈴錘式彎舉",    setsReps: "3 × 10-12", fixed: 14,              rpe: 8, rest: "60 秒", note: "單手啞鈴 kg",
-        videoQuery: "dumbbell hammer curl form" },
-    ],
-  },
-  "Day 5 腿B": {
-    title: "Day 5｜下肢功能性強化",
-    meta: "強度 80% 1RM｜目標 RPE 9｜約 70 分",
-    exercises: [
-      { name: "傳統硬舉",       setsReps: "4 × 4-6",   liftKey: "deadlift",   pct: 0.80, rpe: 9, rest: "3 分",   note: "槓貼小腿，背中立",
-        videoQuery: "conventional deadlift proper form" },
-      { name: "前蹲 (Front Squat)", setsReps: "3 × 6-8", liftKey: "frontSquat", pct: 0.75, rpe: 8, rest: "2-3 分", note: "軀幹直立，肘高抬",
-        videoQuery: "front squat proper form" },
-      { name: "槓鈴髖推",       setsReps: "4 × 8-10",  liftKey: "hipThrust",  pct: 0.80, rpe: 8, rest: "90 秒",   note: "頂端臀夾 1 秒",
-        videoQuery: "barbell hip thrust proper form" },
-      { name: "行走式弓步（DB）",  setsReps: "3 × 10 步/邊", fixed: 20,              rpe: 8, rest: "90 秒",   note: "單手啞鈴 kg",
-        videoQuery: "walking lunge dumbbell form" },
-      { name: "腿彎舉（機械）",   setsReps: "3 × 8-10",  rpeOnly: true,            rpe: 8, rest: "60 秒",   note: "離心 3-4 秒",
-        videoQuery: "lying leg curl machine form" },
-      { name: "坐姿提踵",       setsReps: "4 × 10-12", rpeOnly: true,            rpe: 9, rest: "60 秒",   note: "比目魚肌聚焦",
-        videoQuery: "seated calf raise form" },
-    ],
-  },
-  "方案A 全身": {
-    title: "方案 A 備援｜全身效率型 — 每週 2-3 次",
-    meta: "出差 / 減載 / 復健週使用｜≤ 60 分",
-    exercises: [
-      { name: "槓鈴背蹲 或 硬舉",  setsReps: "3-4 × 6-8", liftKey: "squat", pct: 0.75, rpe: 7.5, rest: "2-3 分", note: "二擇一輪替",
-        videoQuery: "back squat vs deadlift form" },
-      { name: "槓鈴臥推",        setsReps: "3 × 6-8",   liftKey: "bench", pct: 0.75, rpe: 7.5, rest: "2 分",   note: "Full ROM 觸胸",
+      { name: "槓鈴平板臥推",    setsReps: "4 × 6-8", liftKey: "bench", pct: 0.75, rpe: 8, rest: "2-3 分",
+        note: "Full ROM 觸胸",
         videoQuery: "barbell bench press proper form" },
-      { name: "槓鈴划船 或 引體向上", setsReps: "3 × 6-8", liftKey: "row", pct: 0.75, rpe: 7.5, rest: "2 分", note: "二擇一",
-        videoQuery: "barbell row vs pull up form" },
-      { name: "肩推 或 滑輪下拉",   setsReps: "3 × 8-10", liftKey: "ohp", pct: 0.72, rpe: 7.5, rest: "90 秒", note: "二擇一",
-        videoQuery: "shoulder press or lat pulldown form" },
-      { name: "臀橋 / 髖推",      setsReps: "3 × 10",   rpeOnly: true,          rpe: 7,   rest: "90 秒",   note: "頂端夾臀",
-        videoQuery: "glute bridge hip thrust form" },
-      { name: "核心循環",       setsReps: "3 組 30-60 秒", rpeOnly: true,        rpe: 7,   rest: "30 秒",  note: "棒式 / 死蟲式 / 農夫走",
+      { name: "槓鈴俯身划船",    setsReps: "4 × 6-8", liftKey: "row", pct: 0.75, rpe: 8, rest: "2 分",
+        note: "軀幹 45°，拉至下腹；背中立",
+        videoQuery: "barbell bent over row form" },
+      { name: "坐姿槓鈴肩推",    setsReps: "3 × 8-10", liftKey: "ohp", pct: 0.72, rpe: 8, rest: "90 秒",
+        note: "過頂鎖定，避免過度反弓",
+        videoQuery: "seated barbell shoulder press form" },
+      { name: "核心循環",       setsReps: "3 組 30-60 秒", rpeOnly: true, rpe: 7, rest: "30 秒",
+        note: "棒式 / 死蟲式 / 農夫走",
         videoQuery: "plank dead bug farmer carry core form" },
+    ],
+  },
+  "模組 B 上半身 + 4x4": {
+    title: "模組 B｜上半身專項 + 4x4 心肺",
+    meta: "撐高心肺天花板｜約 60 分（30 重訓 + 40 間歇）",
+    exercises: [
+      { name: "槓鈴平板臥推",    setsReps: "3 × 6-8", liftKey: "bench", pct: 0.75, rpe: 8, rest: "2 分",
+        note: "Full ROM 觸胸",
+        videoQuery: "barbell bench press proper form" },
+      { name: "滑輪下拉 / 引體向上", setsReps: "3 × 8-10", liftKey: "bodyweight", rpe: 8, rest: "90 秒",
+        note: "肩胛先下沉，拉至鎖骨上緣",
+        videoQuery: "pull up vs lat pulldown form" },
+      { name: "啞鈴肩推",       setsReps: "3 × 8-10", fixed: 20, rpe: 8, rest: "90 秒",
+        note: "單手啞鈴 kg；過頂鎖定",
+        videoQuery: "seated dumbbell shoulder press form" },
+      { name: "二頭 + 三頭超級組", setsReps: "3 × 10", rpeOnly: true, rpe: 8, rest: "60 秒",
+        note: "槓鈴二頭 + 繩索下壓，不休息切換",
+        videoQuery: "biceps curl triceps pushdown superset" },
+      { name: "→ 挪威 4x4 間歇", setsReps: "10 + 4×(4+3) + 5 分", rpeOnly: true, rpe: 10, rest: "—",
+        note: "練完上半身直接接 4x4；詳細秒數見『心率』分頁",
+        videoQuery: "norwegian 4x4 interval training" },
+    ],
+  },
+  "模組 C 下半身 + 核心": {
+    title: "模組 C｜下半身大重量 + 核心",
+    meta: "腿部肌肉防線｜約 70 分｜無有氧",
+    exercises: [
+      { name: "傳統硬舉",       setsReps: "4 × 4-6", liftKey: "deadlift", pct: 0.80, rpe: 8.5, rest: "3 分",
+        note: "槓貼小腿，背中立，髖鉸鏈先動",
+        videoQuery: "conventional deadlift proper form" },
+      { name: "前蹲 (Front Squat)", setsReps: "3 × 6-8", liftKey: "frontSquat", pct: 0.75, rpe: 8, rest: "2-3 分",
+        note: "軀幹直立，肘高抬",
+        videoQuery: "front squat proper form" },
+      { name: "槓鈴髖推",       setsReps: "4 × 8-10", liftKey: "hipThrust", pct: 0.75, rpe: 8, rest: "90 秒",
+        note: "頂端臀夾 1 秒；下巴收",
+        videoQuery: "barbell hip thrust proper form" },
+      { name: "行走式弓步（DB）", setsReps: "3 × 10 步/邊", fixed: 20, rpe: 8, rest: "90 秒",
+        note: "單手啞鈴 kg；後膝輕觸地",
+        videoQuery: "walking lunge dumbbell form" },
+      { name: "腿彎舉（機械）",   setsReps: "3 × 8-10", rpeOnly: true, rpe: 8, rest: "60 秒",
+        note: "離心 3-4 秒",
+        videoQuery: "lying leg curl machine form" },
+      { name: "死蟲式 + 棒式",   setsReps: "3 組", rpeOnly: true, rpe: 7, rest: "30 秒",
+        note: "死蟲式 10 下 + 棒式 45 秒",
+        videoQuery: "dead bug plank core stability" },
     ],
   },
 };
@@ -210,7 +214,7 @@ let settings = loadSettings();
 let today = loadToday();
 let pr = loadPR();
 let currentView = "entry";
-let currentDay = "Day 1 推";
+let currentDay = "模組 A 全身";
 let prDismissedThisSession = {};
 
 function loadSettings() {
@@ -607,6 +611,104 @@ function renderProgram() {
   });
 }
 
+// ---------- Render: zones view ----------
+function renderZones() {
+  const maxHR = settings.maxHR || 186;
+  $("mhrNum").textContent = maxHR;
+
+  const sweet = z2Sweet(maxHR);
+  $("sweetRange").textContent = `${sweet.min} – ${sweet.max} bpm`;
+
+  // Zones table
+  const table = $("zonesTable");
+  table.innerHTML = "";
+  ZONES.forEach(z => {
+    const b = zoneBpm(z, maxHR);
+    const row = document.createElement("div");
+    row.className = `zone-row zone-z${z.id}`;
+    row.innerHTML = `
+      <div class="zone-head">
+        <div class="zone-label">${escapeHtml(z.label)}</div>
+        <div class="zone-pct">${Math.round(z.pctMin * 100)} – ${Math.round(z.pctMax * 100)}%</div>
+        <div class="zone-bpm">${b.min} – ${b.max} <small>bpm</small></div>
+      </div>
+      <div class="zone-bars">
+        <div class="zone-bar zone-bar-fat" style="--w: ${parseFatPct(z.fatPct)}%">
+          <span class="zone-bar-label">脂肪 ${escapeHtml(z.fatPct)}</span>
+        </div>
+        <div class="zone-bar zone-bar-carb" style="--w: ${parseFatPct(z.carbPct)}%">
+          <span class="zone-bar-label">碳水 ${escapeHtml(z.carbPct)}</span>
+        </div>
+      </div>
+      <div class="zone-foot">
+        <span class="zone-feel">${escapeHtml(z.feel)}</span>
+        <span class="zone-use">${escapeHtml(z.use)}</span>
+      </div>
+    `;
+    table.appendChild(row);
+  });
+
+  // Norwegian 4x4 steps
+  const z4z5Min = Math.round(0.88 * maxHR);
+  const z4z5Max = Math.round(0.94 * maxHR);
+  const recoveryMin = Math.round(0.65 * maxHR);
+  const recoveryMax = Math.round(0.72 * maxHR);
+  const n4x4 = [
+    { t: "暖身",     dur: "10 分鐘", target: `HR 緩慢拉到 ${Math.round(0.65 * maxHR)}`, kind: "warm" },
+    { t: "衝刺 #1",  dur: "4 分鐘",  target: `HR ${z4z5Min} – ${z4z5Max}`, kind: "hard" },
+    { t: "恢復 #1",  dur: "3 分鐘",  target: `HR 掉回 ${recoveryMin} – ${recoveryMax}`, kind: "easy" },
+    { t: "衝刺 #2",  dur: "4 分鐘",  target: `HR ${z4z5Min} – ${z4z5Max}`, kind: "hard" },
+    { t: "恢復 #2",  dur: "3 分鐘",  target: `HR 掉回 ${recoveryMin} – ${recoveryMax}`, kind: "easy" },
+    { t: "衝刺 #3",  dur: "4 分鐘",  target: `HR ${z4z5Min} – ${z4z5Max}`, kind: "hard" },
+    { t: "恢復 #3",  dur: "3 分鐘",  target: `HR 掉回 ${recoveryMin} – ${recoveryMax}`, kind: "easy" },
+    { t: "衝刺 #4",  dur: "4 分鐘",  target: `HR ${z4z5Min} – ${z4z5Max}`, kind: "hard" },
+    { t: "緩和",     dur: "5 分鐘",  target: "輕鬆走至 HR < 110",         kind: "warm" },
+  ];
+  const steps = $("n4x4Steps");
+  steps.innerHTML = "";
+  n4x4.forEach(s => {
+    const li = document.createElement("li");
+    li.className = `proto-step proto-${s.kind}`;
+    li.innerHTML = `
+      <div class="proto-title">${escapeHtml(s.t)}</div>
+      <div class="proto-dur">${escapeHtml(s.dur)}</div>
+      <div class="proto-target">${escapeHtml(s.target)}</div>
+    `;
+    steps.appendChild(li);
+  });
+
+  // Incline walk spec
+  const z2Cap = Math.round(0.725 * maxHR);
+  $("inclineSpec").innerHTML = `
+    <div class="incline-grid">
+      <div class="incline-item"><span class="incline-label">坡度</span><strong>5 – 8</strong></div>
+      <div class="incline-item"><span class="incline-label">速度</span><strong>4.5 – 5.5</strong></div>
+      <div class="incline-item"><span class="incline-label">心率上限</span><strong>${z2Cap} bpm</strong></div>
+      <div class="incline-item"><span class="incline-label">時長</span><strong>30 – 45 分</strong></div>
+    </div>
+  `;
+}
+
+function parseFatPct(s) {
+  // "70-85%" → 77; "<5%" → 3; ">95%" → 97
+  if (s.includes("<")) return parseFloat(s.replace(/[<%]/g, "")) - 2;
+  if (s.includes(">")) return parseFloat(s.replace(/[>%]/g, "")) + 2;
+  const m = s.match(/(\d+)-(\d+)/);
+  if (m) return Math.round((parseInt(m[1]) + parseInt(m[2])) / 2);
+  return parseFloat(s) || 0;
+}
+
+// MHR edit click
+function bindZonesEvents() {
+  const edit = $("mhrEditLink");
+  if (edit) {
+    edit.addEventListener("click", e => {
+      e.preventDefault();
+      openSettings();
+    });
+  }
+}
+
 function onSetInput(e) {
   const exName = e.target.dataset.ex;
   const idx = parseInt(e.target.dataset.idx, 10);
@@ -704,6 +806,7 @@ function switchView(view) {
   });
   if (view === "program") renderProgram();
   if (view === "entry") renderEntry();
+  if (view === "zones") renderZones();
   const url = new URL(window.location.href);
   url.searchParams.set("view", view);
   history.replaceState({}, "", url.toString());
@@ -888,8 +991,10 @@ function openSettings() {
   $("appsScriptUrl").value = settings.appsScriptUrl;
   $("bodyweight").value = settings.bodyweight;
   $("proteinTarget").value = settings.proteinTarget;
+  $("fatTarget").value = settings.fatTarget;
   $("kcalTrainTarget").value = settings.kcalTrainTarget;
   $("kcalRestTarget").value = settings.kcalRestTarget;
+  $("maxHR").value = settings.maxHR;
   Object.keys(DEFAULT_1RM).forEach(k => {
     const el = $(`rm_${k}`);
     if (el) el.value = settings.rm[k] ?? "";
@@ -903,10 +1008,12 @@ function closeSettings() {
 
 function saveSettings() {
   settings.appsScriptUrl = $("appsScriptUrl").value.trim();
-  settings.bodyweight = parseFloat($("bodyweight").value) || 90;
-  settings.proteinTarget = parseFloat($("proteinTarget").value) || 180;
-  settings.kcalTrainTarget = parseFloat($("kcalTrainTarget").value) || 2866;
-  settings.kcalRestTarget = parseFloat($("kcalRestTarget").value) || 2666;
+  settings.bodyweight = parseFloat($("bodyweight").value) || 80;
+  settings.proteinTarget = parseFloat($("proteinTarget").value) || 175;
+  settings.fatTarget = parseFloat($("fatTarget").value) || 70;
+  settings.kcalTrainTarget = parseFloat($("kcalTrainTarget").value) || 2300;
+  settings.kcalRestTarget = parseFloat($("kcalRestTarget").value) || 2100;
+  settings.maxHR = parseFloat($("maxHR").value) || 186;
   Object.keys(DEFAULT_1RM).forEach(k => {
     const el = $(`rm_${k}`);
     if (el) {
@@ -918,6 +1025,7 @@ function saveSettings() {
   closeSettings();
   renderEntry();
   if (currentView === "program") renderProgram();
+  if (currentView === "zones") renderZones();
   toast("設定已儲存 ✓", "success");
 }
 
@@ -938,6 +1046,188 @@ function clearAll() {
   toast("已清除", "success");
 }
 
+// ---------- Food photo analysis ----------
+let pendingAnalysis = null;  // result waiting to be applied
+
+function setupPhotoAnalysis() {
+  const btn = $("photoBtn");
+  const input = $("photoInput");
+  if (!btn || !input) return;
+
+  btn.addEventListener("click", () => input.click());
+  input.addEventListener("change", e => {
+    const file = e.target.files?.[0];
+    if (file) handlePhotoFile(file);
+    input.value = "";  // reset to allow same file re-select
+  });
+
+  $("closeAnalyzeBtn").addEventListener("click", closeAnalyzeModal);
+  $("applyAnalyzeBtn").addEventListener("click", applyPendingAnalysis);
+  $("analyzeModal").addEventListener("click", e => {
+    if (e.target.id === "analyzeModal") closeAnalyzeModal();
+  });
+}
+
+async function handlePhotoFile(file) {
+  if (!settings.appsScriptUrl) {
+    toast("請先在設定中填入 Apps Script URL", "error");
+    openSettings();
+    return;
+  }
+
+  // Show modal in loading state
+  openAnalyzeModal();
+
+  try {
+    // Resize / compress to ≤ 1024px to save bandwidth & API quota
+    const dataUrl = await resizeImage(file, 1024, 0.85);
+    const previewImg = $("analyzePreviewImg");
+    previewImg.src = dataUrl;
+    $("analyzePreview").hidden = false;
+    $("analyzeLoading").hidden = false;
+    $("analyzeError").hidden = true;
+    $("analyzeResult").hidden = true;
+    $("applyAnalyzeBtn").hidden = true;
+
+    // Extract base64 (strip "data:image/jpeg;base64,")
+    const base64 = dataUrl.split(",")[1];
+    const mime = dataUrl.slice(5, dataUrl.indexOf(";"));
+
+    // POST to Apps Script
+    // Note: with no-cors we can't read response. Need cors mode.
+    // Apps Script supports CORS via ContentService.MimeType.JSON when accessed cross-origin.
+    const res = await fetch(settings.appsScriptUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: "analyze",
+        image_base64: base64,
+        mime_type: mime,
+      }),
+    });
+
+    const json = await res.json();
+    $("analyzeLoading").hidden = true;
+
+    if (json.status !== "ok") {
+      showAnalyzeError(json.message || "分析失敗", json.detail);
+      return;
+    }
+
+    pendingAnalysis = json.result;
+    renderAnalysisResult(json.result);
+  } catch (err) {
+    $("analyzeLoading").hidden = true;
+    showAnalyzeError("網路或解析錯誤", String(err));
+  }
+}
+
+function resizeImage(file, maxDim, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        const scale = Math.min(1, maxDim / Math.max(width, height));
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderAnalysisResult(result) {
+  const totals = result.totals || {};
+  const items = result.items || [];
+
+  const itemsHtml = items.length === 0
+    ? '<div class="empty">未辨識出食物</div>'
+    : items.map(it => `
+        <div class="analyze-item">
+          <div class="analyze-item-head">
+            <span class="analyze-item-name">${escapeHtml(it.name || "未知")}</span>
+            <span class="analyze-item-grams">${escapeHtml(String(it.grams || "?"))} g</span>
+          </div>
+          <div class="analyze-item-macros">
+            <span>P <strong>${fmtN(it.protein_g)}</strong></span>
+            <span>F <strong>${fmtN(it.fat_g)}</strong></span>
+            <span>C <strong>${fmtN(it.carb_g)}</strong></span>
+            <span class="analyze-kcal">${fmtN(it.kcal)} kcal</span>
+          </div>
+        </div>
+      `).join("");
+
+  $("analyzeItems").innerHTML = itemsHtml;
+
+  $("analyzeTotals").innerHTML = `
+    <div class="totals-label">總計</div>
+    <div class="totals-macros">
+      <div class="total-pill"><span class="t-l">P</span><span class="t-v">${fmtN(totals.protein_g)}</span><span class="t-u">g</span></div>
+      <div class="total-pill"><span class="t-l">F</span><span class="t-v">${fmtN(totals.fat_g)}</span><span class="t-u">g</span></div>
+      <div class="total-pill"><span class="t-l">C</span><span class="t-v">${fmtN(totals.carb_g)}</span><span class="t-u">g</span></div>
+      <div class="total-pill total-kcal"><span class="t-v">${fmtN(totals.kcal)}</span><span class="t-u">kcal</span></div>
+    </div>
+  `;
+
+  const conf = result.confidence || "medium";
+  const confLabel = { high: "✓ 高信心", medium: "~ 中信心", low: "⚠ 低信心" }[conf] || conf;
+  $("analyzeSummary").innerHTML = `辨識出 <strong>${items.length}</strong> 個項目 · <span class="conf-${conf}">${confLabel}</span>`;
+  $("analyzeNote").textContent = result.notes || "";
+
+  $("analyzeResult").hidden = false;
+  $("applyAnalyzeBtn").hidden = items.length === 0;
+}
+
+function fmtN(v) {
+  if (v == null || v === "") return "—";
+  return Math.round(parseFloat(v) * 10) / 10;
+}
+
+function showAnalyzeError(msg, detail) {
+  const el = $("analyzeError");
+  el.innerHTML = `<strong>${escapeHtml(msg)}</strong>${detail ? `<pre>${escapeHtml(detail)}</pre>` : ""}`;
+  el.hidden = false;
+  $("analyzeResult").hidden = true;
+  $("applyAnalyzeBtn").hidden = true;
+}
+
+function openAnalyzeModal() {
+  $("analyzeModal").hidden = false;
+}
+
+function closeAnalyzeModal() {
+  $("analyzeModal").hidden = true;
+  pendingAnalysis = null;
+}
+
+function applyPendingAnalysis() {
+  if (!pendingAnalysis) return;
+  const totals = pendingAnalysis.totals || {};
+  const p = Math.round(parseFloat(totals.protein_g) || 0);
+  const f = Math.round(parseFloat(totals.fat_g) || 0);
+  const c = Math.round(parseFloat(totals.carb_g) || 0);
+
+  // Add to today (累加，不覆蓋)
+  today.protein = (today.protein || 0) + p;
+  today.fat = (today.fat || 0) + f;
+  today.carbs = (today.carbs || 0) + c;
+  persistToday();
+  renderEntry();
+  closeAnalyzeModal();
+  toast(`已加入：+${p}P / +${f}F / +${c}C`, "success");
+}
+
 // ---------- Toast ----------
 let toastTimeout = null;
 function toast(msg, type = "") {
@@ -952,6 +1242,9 @@ function toast(msg, type = "") {
 
 // ---------- Boot ----------
 setupEvents();
+bindZonesEvents();
+setupPhotoAnalysis();
 const urlParams = new URLSearchParams(window.location.search);
 const initialView = urlParams.get("view");
-switchView(initialView === "program" ? "program" : "entry");
+const VALID_VIEWS = ["entry", "program", "zones"];
+switchView(VALID_VIEWS.includes(initialView) ? initialView : "entry");

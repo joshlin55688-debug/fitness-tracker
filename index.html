@@ -26,8 +26,9 @@
 
   <!-- View tabs -->
   <nav class="view-tabs" role="tablist">
-    <button class="view-tab active" data-view="entry" role="tab" aria-selected="true">📝 今日記錄</button>
-    <button class="view-tab" data-view="program" role="tab" aria-selected="false">💪 訓練菜單</button>
+    <button class="view-tab active" data-view="entry" role="tab" aria-selected="true">📝 今日</button>
+    <button class="view-tab" data-view="program" role="tab" aria-selected="false">💪 菜單</button>
+    <button class="view-tab" data-view="zones" role="tab" aria-selected="false">🫀 心率</button>
   </nav>
 
   <!-- ======== Entry view ======== -->
@@ -70,12 +71,13 @@
       <section class="card">
         <h2>訓練 <span class="hint">點選類型</span></h2>
         <div class="chip-group" id="trainingChips">
-          <button class="chip" data-value="Day 1 推">Day 1 推</button>
-          <button class="chip" data-value="Day 2 腿A">Day 2 腿A</button>
-          <button class="chip" data-value="Day 4 拉">Day 4 拉</button>
-          <button class="chip" data-value="Day 5 腿B">Day 5 腿B</button>
-          <button class="chip" data-value="方案A 全身">方案A</button>
-          <button class="chip" data-value="Day 3 主動恢復">主動恢復</button>
+          <button class="chip" data-value="模組 A 全身">模組 A 全身</button>
+          <button class="chip" data-value="模組 B 上半身 + 4x4">模組 B 上+4x4</button>
+          <button class="chip" data-value="模組 C 下半身 + 核心">模組 C 下+核心</button>
+          <button class="chip" data-value="坡度快走">坡度快走 Z2</button>
+          <button class="chip" data-value="挪威 4x4">挪威 4x4</button>
+          <button class="chip" data-value="帶小孩">帶小孩 NEAT</button>
+          <button class="chip" data-value="輪班工作">輪班工作</button>
           <button class="chip" data-value="休息">休息</button>
         </div>
         <div class="row two-col" id="trainingNumRow">
@@ -100,7 +102,11 @@
 
       <!-- Nutrition section -->
       <section class="card">
-        <h2>飲食 <span class="hint">蛋白優先</span></h2>
+        <h2>
+          飲食 <span class="hint">蛋白優先</span>
+          <button class="photo-btn" id="photoBtn" type="button" aria-label="拍照分析食物">📷 拍照分析</button>
+        </h2>
+        <input type="file" id="photoInput" accept="image/*" capture="environment" hidden>
         <div class="macros">
           <div class="macro">
             <div class="macro-head">
@@ -209,11 +215,9 @@
     <main>
       <!-- Day tabs -->
       <nav class="day-tabs" id="dayTabs" role="tablist">
-        <button class="day-tab active" data-day="Day 1 推" role="tab">Day 1<small>推</small></button>
-        <button class="day-tab" data-day="Day 2 腿A" role="tab">Day 2<small>腿A</small></button>
-        <button class="day-tab" data-day="Day 4 拉" role="tab">Day 4<small>拉</small></button>
-        <button class="day-tab" data-day="Day 5 腿B" role="tab">Day 5<small>腿B</small></button>
-        <button class="day-tab" data-day="方案A 全身" role="tab">方案A<small>全身</small></button>
+        <button class="day-tab active" data-day="模組 A 全身" role="tab">模組 A<small>全身</small></button>
+        <button class="day-tab" data-day="模組 B 上半身 + 4x4" role="tab">模組 B<small>上 + 4x4</small></button>
+        <button class="day-tab" data-day="模組 C 下半身 + 核心" role="tab">模組 C<small>下 + 核心</small></button>
       </nav>
 
       <!-- Day header -->
@@ -243,6 +247,94 @@
       </section>
     </main>
   </section>
+
+  <!-- ======== Zones view (HR cardio zones) ======== -->
+  <section class="view" id="zonesView" data-view="zones" hidden>
+    <main>
+      <!-- MHR card -->
+      <section class="card zone-mhr-card">
+        <h2>最大心率 (MHR) <span class="hint">公式：208 − 0.7 × 年齡</span></h2>
+        <div class="mhr-display">
+          <span class="mhr-num" id="mhrNum">186</span>
+          <span class="mhr-unit">bpm</span>
+          <a href="#" class="mhr-edit" id="mhrEditLink">編輯</a>
+        </div>
+      </section>
+
+      <!-- Sweet spot card -->
+      <section class="card sweet-card">
+        <h2>🎯 Zone 2 甜蜜點 <span class="hint">投報率最高</span></h2>
+        <div class="sweet-range" id="sweetRange">120 – 128 bpm</div>
+        <p class="sweet-note">把心率穩穩咬在這個區間 → 微血管增生 + 粒線體生長最強。<br>
+          只要超過 132 bpm 就跨過第一乳酸閾值，效果開始打折。</p>
+      </section>
+
+      <!-- All zones table -->
+      <section class="card zones-card">
+        <h2>5 大心率區間</h2>
+        <div class="zones-table" id="zonesTable"></div>
+      </section>
+
+      <!-- Strategy card -->
+      <section class="card">
+        <h2>策略：兩極化訓練 (80 / 20)</h2>
+        <ul class="program-notes-list">
+          <li><strong>80% 時間 Zone 2</strong>：降載坡度快走（坡度 5-8 / 速度 4.5-5.5），HR 120-130，重訓後或休息日做</li>
+          <li><strong>20% 時間 Zone 4-5</strong>：挪威 4x4 間歇，每週 1 次，撐高 VO2 Max</li>
+          <li><strong>避開 Zone 3 灰色地帶</strong>：太累無法天天做，又不夠喘刺激天花板</li>
+        </ul>
+      </section>
+
+      <!-- Norwegian 4x4 -->
+      <section class="card">
+        <h2>挪威 4x4 高強度間歇 <span class="hint">每週 1 次</span></h2>
+        <ol class="protocol-steps" id="n4x4Steps"></ol>
+      </section>
+
+      <!-- Incline walk -->
+      <section class="card">
+        <h2>降載坡度快走 <span class="hint">每週 3 次</span></h2>
+        <div class="incline-spec" id="inclineSpec"></div>
+        <p class="footer-meta" style="margin-top: 12px; text-align: left;">
+          ⚠ 絕對不要抓扶手；核心收緊；目標 HR 嚴格 ≤ 135 bpm；30-45 分鐘
+        </p>
+      </section>
+
+      <section class="footer">
+        <p>心率區間參數依 Gemini 規劃；甜蜜點參考 Iñigo San Millán（Zone 2 訓練權威）</p>
+      </section>
+    </main>
+  </section>
+
+  <!-- Food analysis modal -->
+  <div class="modal" id="analyzeModal" hidden>
+    <div class="modal-content">
+      <h2>📷 食物分析</h2>
+
+      <div id="analyzePreview" class="analyze-preview" hidden>
+        <img id="analyzePreviewImg" alt="食物照片預覽">
+      </div>
+
+      <div id="analyzeLoading" class="analyze-loading" hidden>
+        <div class="spinner"></div>
+        <p>Gemini 分析中…大約 5-15 秒</p>
+      </div>
+
+      <div id="analyzeError" class="analyze-error" hidden></div>
+
+      <div id="analyzeResult" class="analyze-result" hidden>
+        <p class="analyze-summary" id="analyzeSummary"></p>
+        <div class="analyze-items" id="analyzeItems"></div>
+        <div class="analyze-totals" id="analyzeTotals"></div>
+        <p class="analyze-note" id="analyzeNote"></p>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="applyAnalyzeBtn" hidden>套用到今日</button>
+        <button class="btn btn-ghost" id="closeAnalyzeBtn">關閉</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Settings modal -->
   <div class="modal" id="settingsModal" hidden>
@@ -278,6 +370,16 @@
           <div class="field">
             <label for="kcalRestTarget">休息日 kcal</label>
             <input type="number" id="kcalRestTarget" step="10">
+          </div>
+        </div>
+        <div class="row two-col">
+          <div class="field">
+            <label for="fatTarget">脂肪目標 (g)</label>
+            <input type="number" id="fatTarget" step="1">
+          </div>
+          <div class="field">
+            <label for="maxHR">最大心率 (bpm)</label>
+            <input type="number" id="maxHR" step="1">
           </div>
         </div>
       </div>
