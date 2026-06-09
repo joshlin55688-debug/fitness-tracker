@@ -44,7 +44,21 @@ const DEFAULT_SETTINGS = {
   kcalTrainTarget: 2300,
   kcalRestTarget: 2100,
   maxHR: 186,
+  // 個人資料
+  age: 31,
+  height: 175,
+  gender: "M",
+  trainingLevel: "intermediate",
+  goal: "recomp",        // bulk | recomp | cut
+  activity: 1.375,        // 1.2 / 1.375 / 1.55 / 1.725
   rm: { ...DEFAULT_1RM },
+};
+
+// 目標 → 熱量調整 + 蛋白係數
+const GOAL_PROFILE = {
+  bulk:   { kcalDelta: +250, proteinKgFactor: 1.8, label: "增肌" },
+  recomp: { kcalDelta: -200, proteinKgFactor: 2.2, label: "同時增肌減脂" },
+  cut:    { kcalDelta: -400, proteinKgFactor: 2.4, label: "減脂" },
 };
 
 // ---------- Cardio Zones (HR-based, Gemini plan) ----------
@@ -677,6 +691,36 @@ function renderZones() {
     steps.appendChild(li);
   });
 
+  // HIIT Sprint 30/60 — Gemini's variant
+  const sprintMin = Math.round(0.88 * maxHR);
+  const sprintMax = Math.round(0.95 * maxHR);
+  const sprintRecMin = Math.round(0.60 * maxHR);
+  const sprintRecMax = Math.round(0.65 * maxHR);
+  const sprintSteps = [
+    { t: "暖身", dur: "5 分鐘", target: "輕鬆動態活動，HR 緩慢提升", kind: "warm" },
+  ];
+  for (let i = 1; i <= 9; i++) {
+    sprintSteps.push({ t: `衝刺 #${i}`, dur: "30 秒",
+      target: `用盡全力，HR ${sprintMin} – ${sprintMax}`, kind: "hard" });
+    sprintSteps.push({ t: `恢復 #${i}`, dur: "60 秒",
+      target: `輕鬆走，HR ${sprintRecMin} – ${sprintRecMax}`, kind: "easy" });
+  }
+  sprintSteps.push({ t: "緩和", dur: "5 分鐘", target: "輕鬆走至 HR < 110", kind: "warm" });
+  const sprintEl = $("hiitSprintSteps");
+  if (sprintEl) {
+    sprintEl.innerHTML = "";
+    sprintSteps.forEach(s => {
+      const li = document.createElement("li");
+      li.className = `proto-step proto-${s.kind}`;
+      li.innerHTML = `
+        <div class="proto-title">${escapeHtml(s.t)}</div>
+        <div class="proto-dur">${escapeHtml(s.dur)}</div>
+        <div class="proto-target">${escapeHtml(s.target)}</div>
+      `;
+      sprintEl.appendChild(li);
+    });
+  }
+
   // Incline walk spec
   const z2Cap = Math.round(0.725 * maxHR);
   $("inclineSpec").innerHTML = `
@@ -687,6 +731,108 @@ function renderZones() {
       <div class="incline-item"><span class="incline-label">時長</span><strong>30 – 45 分</strong></div>
     </div>
   `;
+}
+
+// ---------- Render: principles view ----------
+const CORE_PRINCIPLES = [
+  {
+    icon: "🏋️",
+    title: "重量訓練",
+    headline: "重建代謝引擎",
+    body: "啟動 mTOR 肌肉合成路徑；肌肉變成「葡萄糖匯」吸收餐後血糖。少吃多跑流失的體重高達 25% 是肌肉。",
+    rule: "每週 2-3 次，深蹲 / 硬舉 / 臥推 / 划船複合動作，落實漸進式超負荷。",
+  },
+  {
+    icon: "🔥",
+    title: "適度熱量赤字",
+    headline: "逼迫身體燃脂",
+    body: "赤字太大會進入「節能模式」，肌肉流失。微幅赤字下，重訓的「大興土木」訊號會讓身體動用儲存脂肪。",
+    rule: "每日 15-25% 熱量赤字（約 -300~500 kcal）。",
+  },
+  {
+    icon: "🥩",
+    title: "充足蛋白質",
+    headline: "提供合成原料",
+    body: "蛋白質食物熱效應最高；白胺酸（Leucine）開啟 mTOR 開關。減脂期需更高，防止肌肉流失。",
+    rule: "1.6-2.2 g/kg（減脂期可達 2.4+）；平均分配三餐，每餐 25-40 g。",
+  },
+  {
+    icon: "😴",
+    title: "睡眠與恢復",
+    headline: "荷爾蒙調節",
+    body: "深度睡眠分泌生長激素 + 降低皮質醇。睡眠不足 + 熱量赤字 = 80% 流失的是肌肉而非脂肪。",
+    rule: "每晚 7-9 小時高品質睡眠；睡前 30-40 g 酪蛋白防夜間分解。",
+  },
+];
+
+const EATING_STRATEGIES = [
+  {
+    title: "聰明選餐廳與烹調",
+    body: "蒸/烤/滷/拌；避開勾芡/油炸；醬汁分開上。日式、西式牛排、健康餐盒優先。",
+  },
+  {
+    title: "豆魚蛋肉順序",
+    body: "2026 新指南：豆 → 魚 → 蛋 → 禽 → 畜。植物蛋白 + 海鮮優先。火鍋順序：湯 → 菜 → 肉 → 飯。",
+  },
+  {
+    title: "便利商店後盾",
+    body: "雞胸肉 / 茶葉蛋 / 水煮蛋 / 沙拉 / 無糖豆漿 / 希臘優格 — 蛋白質補充最快路線。",
+  },
+  {
+    title: "乳清蛋白補位",
+    body: "外食差 / 胃口小時的捷徑。一匙 = 20-25 g 蛋白，去除脂肪與碳水，CP 值最高。",
+  },
+  {
+    title: "每餐均勻分配 ≫ 一餐爆吃",
+    body: "每餐 25-40 g 才能啟動 mTOR。一次吃過量會被當熱量燒掉或儲存，無法多合成肌肉。",
+  },
+];
+
+function renderPrinciples() {
+  // Principles cards
+  const grid = $("corePrinciples");
+  if (grid) {
+    grid.innerHTML = "";
+    CORE_PRINCIPLES.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "principle-card";
+      card.innerHTML = `
+        <div class="principle-head">
+          <span class="principle-icon">${p.icon}</span>
+          <div class="principle-title-block">
+            <div class="principle-title">${escapeHtml(p.title)}</div>
+            <div class="principle-headline">${escapeHtml(p.headline)}</div>
+          </div>
+        </div>
+        <p class="principle-body">${escapeHtml(p.body)}</p>
+        <div class="principle-rule">${escapeHtml(p.rule)}</div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  // Protein per meal calculator
+  const pgD = $("pgDailyProtein");
+  const pgM = $("pgPerMeal");
+  if (pgD && pgM) {
+    const daily = settings.proteinTarget || 175;
+    pgD.textContent = daily;
+    pgM.textContent = Math.round(daily / 4);
+  }
+
+  // Eating strategies
+  const eat = $("eatingStrategies");
+  if (eat) {
+    eat.innerHTML = "";
+    EATING_STRATEGIES.forEach(s => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <div class="eating-title">${escapeHtml(s.title)}</div>
+        <div class="eating-body">${escapeHtml(s.body)}</div>
+      `;
+      eat.appendChild(li);
+    });
+  }
 }
 
 function parseFatPct(s) {
@@ -807,6 +953,7 @@ function switchView(view) {
   if (view === "program") renderProgram();
   if (view === "entry") renderEntry();
   if (view === "zones") renderZones();
+  if (view === "principles") renderPrinciples();
   const url = new URL(window.location.href);
   url.searchParams.set("view", view);
   history.replaceState({}, "", url.toString());
@@ -883,6 +1030,8 @@ function setupEvents() {
   $("closeSettings").addEventListener("click", closeSettings);
   $("saveSettings").addEventListener("click", saveSettings);
   $("clearAllBtn").addEventListener("click", clearAll);
+  const autoBtn = $("autoCalcBtn");
+  if (autoBtn) autoBtn.addEventListener("click", autoCalcMacros);
 
   $("settingsModal").addEventListener("click", e => {
     if (e.target.id === "settingsModal") closeSettings();
@@ -995,6 +1144,13 @@ function openSettings() {
   $("kcalTrainTarget").value = settings.kcalTrainTarget;
   $("kcalRestTarget").value = settings.kcalRestTarget;
   $("maxHR").value = settings.maxHR;
+  // 個人資料
+  $("age").value = settings.age;
+  $("height").value = settings.height;
+  $("gender").value = settings.gender;
+  $("trainingLevel").value = settings.trainingLevel;
+  $("goal").value = settings.goal;
+  $("activity").value = settings.activity;
   Object.keys(DEFAULT_1RM).forEach(k => {
     const el = $(`rm_${k}`);
     if (el) el.value = settings.rm[k] ?? "";
@@ -1014,6 +1170,13 @@ function saveSettings() {
   settings.kcalTrainTarget = parseFloat($("kcalTrainTarget").value) || 2300;
   settings.kcalRestTarget = parseFloat($("kcalRestTarget").value) || 2100;
   settings.maxHR = parseFloat($("maxHR").value) || 186;
+  // 個人資料
+  settings.age = parseInt($("age").value, 10) || 31;
+  settings.height = parseFloat($("height").value) || 175;
+  settings.gender = $("gender").value || "M";
+  settings.trainingLevel = $("trainingLevel").value || "intermediate";
+  settings.goal = $("goal").value || "recomp";
+  settings.activity = parseFloat($("activity").value) || 1.375;
   Object.keys(DEFAULT_1RM).forEach(k => {
     const el = $(`rm_${k}`);
     if (el) {
@@ -1026,7 +1189,41 @@ function saveSettings() {
   renderEntry();
   if (currentView === "program") renderProgram();
   if (currentView === "zones") renderZones();
+  if (currentView === "principles") renderPrinciples();
   toast("設定已儲存 ✓", "success");
+}
+
+// ---------- Auto-calc macros from BMR ----------
+function calcBMR(w, h, age, gender) {
+  // Mifflin-St Jeor
+  const base = 10 * w + 6.25 * h - 5 * age;
+  return gender === "F" ? base - 161 : base + 5;
+}
+
+function autoCalcMacros() {
+  const w = parseFloat($("bodyweight").value) || 80;
+  const h = parseFloat($("height").value) || 175;
+  const age = parseInt($("age").value, 10) || 31;
+  const gender = $("gender").value || "M";
+  const activity = parseFloat($("activity").value) || 1.375;
+  const goal = $("goal").value || "recomp";
+
+  const bmr = calcBMR(w, h, age, gender);
+  const tdee = bmr * activity;
+  const profile = GOAL_PROFILE[goal] || GOAL_PROFILE.recomp;
+
+  const kcalTrain = Math.round((tdee + profile.kcalDelta) / 10) * 10;
+  const kcalRest = Math.round((tdee + profile.kcalDelta - 200) / 10) * 10;
+  const protein = Math.round(w * profile.proteinKgFactor);
+  const fat = Math.round(w * 0.9);
+  // 碳水 = (kcal − P×4 − F×9) / 4, 但這個欄位現在不是輸入欄
+
+  $("proteinTarget").value = protein;
+  $("fatTarget").value = fat;
+  $("kcalTrainTarget").value = kcalTrain;
+  $("kcalRestTarget").value = kcalRest;
+
+  toast(`BMR ${Math.round(bmr)} → TDEE ${Math.round(tdee)} → 目標 ${kcalTrain} kcal`, "success");
 }
 
 function clearAll() {
@@ -1246,5 +1443,5 @@ bindZonesEvents();
 setupPhotoAnalysis();
 const urlParams = new URLSearchParams(window.location.search);
 const initialView = urlParams.get("view");
-const VALID_VIEWS = ["entry", "program", "zones"];
+const VALID_VIEWS = ["entry", "program", "zones", "principles"];
 switchView(VALID_VIEWS.includes(initialView) ? initialView : "entry");

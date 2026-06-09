@@ -29,6 +29,7 @@
     <button class="view-tab active" data-view="entry" role="tab" aria-selected="true">📝 今日</button>
     <button class="view-tab" data-view="program" role="tab" aria-selected="false">💪 菜單</button>
     <button class="view-tab" data-view="zones" role="tab" aria-selected="false">🫀 心率</button>
+    <button class="view-tab" data-view="principles" role="tab" aria-selected="false">📚 原則</button>
   </nav>
 
   <!-- ======== Entry view ======== -->
@@ -287,8 +288,15 @@
 
       <!-- Norwegian 4x4 -->
       <section class="card">
-        <h2>挪威 4x4 高強度間歇 <span class="hint">每週 1 次</span></h2>
+        <h2>挪威 4x4 高強度間歇 <span class="hint">耐力派 / 每週 1 次</span></h2>
         <ol class="protocol-steps" id="n4x4Steps"></ol>
+      </section>
+
+      <!-- HIIT Sprint 30/60 -->
+      <section class="card">
+        <h2>HIIT 衝刺 30/60 <span class="hint">時間派 / 每週 1-2 次</span></h2>
+        <p class="hint-block" style="margin-bottom: 12px;">Gemini 推薦版本：適合<strong>缺時間</strong>的人；總時長 22-25 分，同時刺激無氧與有氧系統。</p>
+        <ol class="protocol-steps" id="hiitSprintSteps"></ol>
       </section>
 
       <!-- Incline walk -->
@@ -302,6 +310,73 @@
 
       <section class="footer">
         <p>心率區間參數依 Gemini 規劃；甜蜜點參考 Iñigo San Millán（Zone 2 訓練權威）</p>
+      </section>
+    </main>
+  </section>
+
+  <!-- ======== Principles view ======== -->
+  <section class="view" id="principlesView" data-view="principles" hidden>
+    <main>
+      <!-- 4 core principles -->
+      <section class="card">
+        <h2>🎯 增肌減脂 4 大核心原則</h2>
+        <div class="principle-grid" id="corePrinciples"></div>
+      </section>
+
+      <!-- Protein per meal guide -->
+      <section class="card">
+        <h2>🍳 蛋白質每餐分配</h2>
+        <div class="protein-guide">
+          <div class="protein-target-display">
+            <span class="pg-num" id="pgDailyProtein">175</span>
+            <span class="pg-unit">g / 日</span>
+            <span class="pg-divider">÷ 4 餐 =</span>
+            <span class="pg-num" id="pgPerMeal">44</span>
+            <span class="pg-unit">g / 餐</span>
+          </div>
+          <p class="pg-note">每餐至少 25-40 g 才能啟動 mTOR（肌肉合成）；一次吃太多吸收效率反而下降。</p>
+          <div class="pg-rule">
+            <strong>視覺化測量</strong>：每餐盤裡至少要有「<span class="accent-text">自己手掌大小及厚度</span>」的豆、魚、蛋或瘦肉。
+          </div>
+        </div>
+      </section>
+
+      <!-- Polarized cardio strategy -->
+      <section class="card">
+        <h2>⚡ 兩極化心肺策略 (80/20)</h2>
+        <div class="polar-split">
+          <div class="polar-bar">
+            <div class="polar-z2" style="width: 80%"><span>80% Zone 2</span></div>
+            <div class="polar-hiit" style="width: 20%"><span>20% HIIT</span></div>
+          </div>
+          <ul class="program-notes-list">
+            <li><strong>Zone 2 打地基</strong>：強化粒線體 + 微血管，不破壞重訓恢復</li>
+            <li><strong>HIIT 撐天花板</strong>：突破 VO2 Max，極短時間達到最大刺激</li>
+            <li><strong>避開 Zone 3 灰色地帶</strong>：太累無法天天做，又不夠喘觸發改造</li>
+            <li><strong>關鍵觀念</strong>：HIIT 在<u>減脂</u>效果未必比中強度有氧好；總能量消耗才是核心</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Eating out strategies -->
+      <section class="card">
+        <h2>🍱 外食族 5 大策略</h2>
+        <ol class="eating-list" id="eatingStrategies"></ol>
+      </section>
+
+      <!-- Recovery -->
+      <section class="card">
+        <h2>😴 睡眠與恢復</h2>
+        <ul class="program-notes-list">
+          <li><strong>7-9 小時高品質睡眠</strong>：生長激素分泌 + 皮質醇下降</li>
+          <li><strong>睡眠不足 + 熱量赤字</strong>：減掉的體重可能高達 <span class="warn-text">80% 是肌肉</span>，而非脂肪</li>
+          <li><strong>睡前 30-40 g 酪蛋白</strong>：吸收慢，防止夜間禁食期肌肉分解</li>
+          <li><strong>飢餓素/瘦體素</strong>：睡眠不足會讓你更想吃高熱量食物</li>
+        </ul>
+      </section>
+
+      <section class="footer">
+        <p>原則彙整自 NotebookLM Report《科學增肌減脂藍圖》與 Gemini 2026 飲食/運動指南</p>
       </section>
     </main>
   </section>
@@ -348,6 +423,58 @@
           <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
           <p class="hint-block">部署 Apps Script 後貼上網址即可一鍵同步到 Google Sheet。<a href="https://github.com/joshlin55688-debug/fitness-tracker#%E8%A8%AD%E7%BD%AE-google-sheet-%E5%90%8C%E6%AD%A5" target="_blank" rel="noopener">設定教學</a></p>
         </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>個人資料</h3>
+        <div class="row two-col">
+          <div class="field">
+            <label for="age">年齡</label>
+            <input type="number" id="age" step="1" min="10" max="100">
+          </div>
+          <div class="field">
+            <label for="height">身高 (cm)</label>
+            <input type="number" id="height" step="0.5">
+          </div>
+        </div>
+        <div class="row two-col">
+          <div class="field">
+            <label for="gender">性別</label>
+            <select id="gender">
+              <option value="M">男</option>
+              <option value="F">女</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="trainingLevel">訓練年資</label>
+            <select id="trainingLevel">
+              <option value="beginner">初學（0-6 個月）</option>
+              <option value="intermediate" selected>中階（6 個月-2 年）</option>
+              <option value="advanced">進階（2 年以上）</option>
+            </select>
+          </div>
+        </div>
+        <div class="row two-col">
+          <div class="field">
+            <label for="goal">目標</label>
+            <select id="goal">
+              <option value="bulk">增肌（熱量盈餘）</option>
+              <option value="recomp" selected>同時增肌減脂（Body Recomp）</option>
+              <option value="cut">減脂（熱量赤字）</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="activity">活動係數</label>
+            <select id="activity">
+              <option value="1.2">久坐（1.2）</option>
+              <option value="1.375" selected>輕度（1.375）</option>
+              <option value="1.55">中度（1.55）</option>
+              <option value="1.725">高度（1.725）</option>
+            </select>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary calc-btn" id="autoCalcBtn">🧮 自動計算營養目標</button>
+        <p class="hint-block">按下後會依公式（Mifflin-St Jeor BMR × 活動係數 + 目標調整）覆寫下面的蛋白/脂肪/kcal 目標。</p>
       </div>
 
       <div class="settings-section">
