@@ -444,6 +444,157 @@ function renderStats() {
   $("statPointsVal").textContent = ptsSum ? `累計 ${ptsSum}` : "—";
   $("statKcalVal").textContent   = kcalAvg ? `平均 ${kcalAvg}` : "—";
   $("statProteinVal").textContent = proteinAvg ? `平均 ${proteinAvg} g` : "—";
+
+  renderWeightTrend();
+  renderACWR();
+  renderDeloadBanner();
+}
+
+// ---------- Weight trend (30 days) ----------
+function renderWeightTrend() {
+  const el = $("weightTrendChart");
+  const val = $("weightTrendVal");
+  if (!el || !val) return;
+
+  const points = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(TODAY);
+    d.setDate(d.getDate() - i);
+    const raw = localStorage.getItem(`ft_day_${toDateStr(d)}`);
+    if (!raw) continue;
+    try {
+      const obj = JSON.parse(raw);
+      const w = parseFloat(obj.weight);
+      if (Number.isFinite(w) && w > 0) {
+        points.push({ x: 29 - i, w });
+      }
+    } catch {}
+  }
+
+  if (points.length < 2) {
+    el.innerHTML = `<div class="chart-empty">${points.length === 1 ? `已記錄 ${points[0].w} kg` : "尚無稱重紀錄"}</div>`;
+    val.textContent = "";
+    return;
+  }
+
+  const W = 200, H = 60, pad = 6;
+  const xs = points.map(p => p.x);
+  const ys = points.map(p => p.w);
+  const yMin = Math.min(...ys) - 0.3;
+  const yMax = Math.max(...ys) + 0.3;
+  const yRange = yMax - yMin || 1;
+
+  const coords = points.map(p => {
+    const x = pad + ((p.x - Math.min(...xs)) / Math.max(1, Math.max(...xs) - Math.min(...xs))) * (W - 2 * pad);
+    const y = pad + (1 - (p.w - yMin) / yRange) * (H - 2 * pad);
+    return [x, y];
+  });
+
+  const poly = coords.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const [lx, ly] = coords[coords.length - 1];
+
+  el.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:60px;">
+      <polyline points="${poly}" fill="none" stroke="url(#sparkGrad)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+      <circle cx="${lx}" cy="${ly}" r="3" fill="#ff6b1a" />
+    </svg>
+  `;
+
+  const first = points[0].w;
+  const last = points[points.length - 1].w;
+  const delta = last - first;
+  const deltaStr = delta === 0 ? "±0" : (delta > 0 ? `+${delta.toFixed(1)}` : delta.toFixed(1));
+  val.innerHTML = `<strong>${last.toFixed(1)}</strong> kg &nbsp;<span class="delta-${delta === 0 ? "flat" : (delta > 0 ? "up" : "down")}">${deltaStr}</span>`;
+}
+
+// ---------- ACWR (Acute / Chronic Workload Ratio) ----------
+function renderACWR() {
+  const marker = $("acwrMarker");
+  const valEl = $("acwrVal");
+  const labelEl = $("acwrLabel");
+  if (!marker || !valEl) return;
+
+  // Collect training points per day for past 28 days
+  const dayPoints = [];
+  for (let i = 27; i >= 0; i--) {
+    const d = new Date(TODAY);
+    d.setDate(d.getDate() - i);
+    const raw = localStorage.getItem(`ft_day_${toDateStr(d)}`);
+    let pts = 0;
+    if (raw) {
+      try {
+        const obj = JSON.parse(raw);
+        pts = (obj.duration || 0) * (obj.srpe || 0);
+      } catch {}
+    }
+    dayPoints.push(pts);
+  }
+
+  // Acute = last 7 days sum; Chronic = past 28-day avg-per-week (total/4)
+  const acute = dayPoints.slice(-7).reduce((s, v) => s + v, 0);
+  const chronic = dayPoints.reduce((s, v) => s + v, 0) / 4;
+
+  if (chronic < 50) {
+    valEl.textContent = "—";
+    labelEl.textContent = "需累積 ≥4 週資料";
+    marker.style.left = "50%";
+    marker.className = "acwr-marker";
+    return;
+  }
+
+  const ratio = acute / chronic;
+  valEl.textContent = ratio.toFixed(2);
+
+  // Marker position: map ratio 0-2.0 → 0-100%
+  const pct = Math.max(0, Math.min(100, (ratio / 2.0) * 100));
+  marker.style.left = `${pct}%`;
+
+  if (ratio < 0.8) {
+    marker.className = "acwr-marker acwr-low";
+    labelEl.textContent = "低負荷 — 可加碼";
+  } else if (ratio <= 1.3) {
+    marker.className = "acwr-marker acwr-ok";
+    labelEl.textContent = "✓ 安全甜蜜帶";
+  } else if (ratio <= 1.5) {
+    marker.className = "acwr-marker acwr-warn";
+    labelEl.textContent = "⚠ 偏高 — 下週宜輕";
+  } else {
+    marker.className = "acwr-marker acwr-danger";
+    labelEl.textContent = "⚠⚠ 強制 Deload";
+  }
+}
+
+// ---------- Deload banner (3 consecutive bad days) ----------
+function renderDeloadBanner() {
+  const banner = $("deloadBanner");
+  if (!banner) return;
+
+  // Skip if user dismissed today
+  const dismissedToday = localStorage.getItem("ft_deload_dismissed") === DATE_STR;
+  if (dismissedToday) { banner.hidden = true; return; }
+
+  // Count consecutive bad days (starting from yesterday going back)
+  let badStreak = 0;
+  for (let i = 1; i <= 7; i++) {
+    const d = new Date(TODAY);
+    d.setDate(d.getDate() - i);
+    const raw = localStorage.getItem(`ft_day_${toDateStr(d)}`);
+    if (!raw) break;
+    try {
+      const obj = JSON.parse(raw);
+      const st = statusOf(obj);
+      if (st === "bad") badStreak++;
+      else if (st === "empty") continue;
+      else break;
+    } catch { break; }
+  }
+
+  if (badStreak >= 3) {
+    banner.hidden = false;
+    $("deloadBannerMsg").textContent = `連續 ${badStreak} 日狀態 ✗，建議今日改主動恢復或睡眠補足`;
+  } else {
+    banner.hidden = true;
+  }
 }
 
 function avgIgnoreNull(arr) {
@@ -561,9 +712,10 @@ function renderProgram() {
     }).join("");
 
     const lastHint = last
-      ? `<div class="ex-last-hint">📅 上次 ${last.date.slice(5)}：` +
-        last.sets.map(x => `${x.w}×${x.r}@${x.rpe}`).filter(s => s !== "×@").join(" / ") +
-        `</div>`
+      ? `<div class="ex-last-hint">
+          <span>📅 上次 ${last.date.slice(5)}：${last.sets.map(x => `${x.w}×${x.r}@${x.rpe}`).filter(s => s !== "×@").join(" / ")}</span>
+          <button class="apply-last-btn" data-ex="${escapeAttr(ex.name)}" data-date="${escapeAttr(last.date)}" type="button">📥 套用</button>
+        </div>`
       : "";
 
     const videoUrl = ex.videoQuery
@@ -571,6 +723,21 @@ function renderProgram() {
       : null;
     const videoBtn = videoUrl
       ? `<a class="ex-video-btn" href="${videoUrl}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(ex.name)} 示範影片">▶ 示範</a>`
+      : "";
+
+    // Warmup rows (only if target weight is a real number, not RPE-only or bodyweight)
+    const warmupHtml = (t.kg && t.kg > 0)
+      ? `<div class="warmup-block">
+           <div class="warmup-label">熱身組</div>
+           <div class="warmup-row"><span class="warmup-pct">60%</span><span class="warmup-kg">${mround(t.kg * 0.6 / 0.75, 2.5)} kg</span><span class="warmup-x">× 5</span></div>
+           <div class="warmup-row"><span class="warmup-pct">80%</span><span class="warmup-kg">${mround(t.kg * 0.8 / 0.75, 2.5)} kg</span><span class="warmup-x">× 3</span></div>
+         </div>`
+      : "";
+
+    // Rest timer button
+    const restSeconds = parseRestSeconds(ex.rest);
+    const restBtn = restSeconds > 0
+      ? `<button class="rest-btn" data-seconds="${restSeconds}" data-ex="${escapeAttr(ex.name)}" type="button">⏱ 休息 ${escapeHtml(ex.rest)}</button>`
       : "";
 
     card.innerHTML = `
@@ -590,11 +757,15 @@ function renderProgram() {
           <div class="ex-spec"><span class="ex-spec-icon">⏱</span>休 <strong>${escapeHtml(ex.rest)}</strong></div>
         </div>
       </div>
+      ${warmupHtml}
       ${ex.note ? `<div class="ex-note">${escapeHtml(ex.note)}</div>` : ""}
       <div class="set-log">
         <div class="set-log-head">
           <span class="set-log-title">本次紀錄</span>
-          <button class="set-add-btn" data-ex="${escapeAttr(ex.name)}" type="button">＋ 加組</button>
+          <div class="set-log-actions">
+            ${restBtn}
+            <button class="set-add-btn" data-ex="${escapeAttr(ex.name)}" type="button">＋ 加組</button>
+          </div>
         </div>
         <div class="set-log-grid">
           <div class="set-row set-row-head">
@@ -623,6 +794,137 @@ function renderProgram() {
   $$("#exerciseList .pr-badge").forEach(b => {
     b.addEventListener("click", () => promptPRUpdate(b.dataset.lift, parseFloat(b.dataset.est)));
   });
+  $$("#exerciseList .rest-btn").forEach(b => {
+    b.addEventListener("click", () => startRestTimer(parseInt(b.dataset.seconds, 10), b.dataset.ex));
+  });
+  $$("#exerciseList .apply-last-btn").forEach(b => {
+    b.addEventListener("click", () => applyLastSession(b.dataset.ex));
+  });
+}
+
+// ---------- Rest time parsing ----------
+function parseRestSeconds(rest) {
+  if (!rest) return 0;
+  const s = String(rest);
+  const secMatch = s.match(/(\d+)\s*秒/);
+  if (secMatch) return parseInt(secMatch[1], 10);
+  const minMatch = s.match(/(\d+)\s*(?:-(\d+))?\s*分/);
+  if (minMatch) {
+    const a = parseInt(minMatch[1], 10);
+    const b = minMatch[2] ? parseInt(minMatch[2], 10) : a;
+    return Math.round(((a + b) / 2) * 60);
+  }
+  return 0;
+}
+
+// ---------- Rest timer ----------
+let restInterval = null;
+let restRemaining = 0;
+let restTotal = 0;
+let restAudioCtx = null;
+
+function ensureAudio() {
+  if (!restAudioCtx) {
+    try {
+      restAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch { /* no-op */ }
+  }
+  return restAudioCtx;
+}
+
+function beep(freq, ms) {
+  const ctx = ensureAudio();
+  if (!ctx) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "sine";
+  osc.frequency.value = freq;
+  gain.gain.value = 0.15;
+  osc.connect(gain).connect(ctx.destination);
+  osc.start();
+  setTimeout(() => { osc.stop(); }, ms);
+}
+
+function vibrate(pattern) {
+  if (navigator.vibrate) navigator.vibrate(pattern);
+}
+
+function startRestTimer(seconds, exName) {
+  if (!seconds || seconds <= 0) return;
+  restTotal = seconds;
+  restRemaining = seconds;
+  ensureAudio();  // unlock audio via user gesture
+  $("restTimer").hidden = false;
+  $("restLabel").textContent = exName || "組間休息";
+  $("restTotal").textContent = `/ ${restTotal} 秒`;
+  updateRestDisplay();
+  clearInterval(restInterval);
+  restInterval = setInterval(tickRestTimer, 1000);
+}
+
+function tickRestTimer() {
+  restRemaining--;
+  if (restRemaining <= 0) {
+    updateRestDisplay();
+    beep(880, 300);
+    setTimeout(() => beep(880, 300), 400);
+    setTimeout(() => beep(1200, 500), 900);
+    vibrate([200, 100, 200, 100, 400]);
+    stopRestTimer();
+    return;
+  }
+  if (restRemaining === 10) { beep(660, 150); vibrate(100); }
+  if (restRemaining === 3 || restRemaining === 2 || restRemaining === 1) {
+    beep(660, 120); vibrate(60);
+  }
+  updateRestDisplay();
+}
+
+function updateRestDisplay() {
+  const r = Math.max(0, restRemaining);
+  const m = Math.floor(r / 60);
+  const s = r % 60;
+  $("restTime").textContent = `${m}:${String(s).padStart(2, "0")}`;
+  // Ring: circumference = 2π × 52 ≈ 327
+  const CIRC = 2 * Math.PI * 52;
+  const pct = restTotal > 0 ? (r / restTotal) : 0;
+  const ring = $("restRingFg");
+  ring.style.strokeDasharray = CIRC;
+  ring.style.strokeDashoffset = CIRC * (1 - pct);
+  // Warning color as time runs low
+  ring.classList.toggle("rest-warn", r <= 10);
+}
+
+function stopRestTimer() {
+  clearInterval(restInterval);
+  restInterval = null;
+  setTimeout(() => { $("restTimer").hidden = true; }, 1200);
+}
+
+function skipRestTimer() {
+  clearInterval(restInterval);
+  restInterval = null;
+  $("restTimer").hidden = true;
+}
+
+function adjustRestTimer(delta) {
+  restRemaining = Math.max(1, restRemaining + delta);
+  restTotal = Math.max(restRemaining, restTotal);
+  $("restTotal").textContent = `/ ${restTotal} 秒`;
+  updateRestDisplay();
+}
+
+// ---------- Apply last session ----------
+function applyLastSession(exName) {
+  const last = findLastSession(currentDay, exName);
+  if (!last || !last.sets || last.sets.length === 0) {
+    toast("沒有上次紀錄", "error");
+    return;
+  }
+  today.sets[exName] = last.sets.map(s => ({ w: s.w || "", r: s.r || "", rpe: s.rpe || "" }));
+  persistToday();
+  renderProgram();
+  toast(`已套用 ${last.date.slice(5)} × ${last.sets.length} 組`, "success");
 }
 
 // ---------- Render: zones view ----------
@@ -1032,6 +1334,21 @@ function setupEvents() {
   $("clearAllBtn").addEventListener("click", clearAll);
   const autoBtn = $("autoCalcBtn");
   if (autoBtn) autoBtn.addEventListener("click", autoCalcMacros);
+
+  // Deload banner dismiss
+  const dismissBtn = $("deloadDismiss");
+  if (dismissBtn) dismissBtn.addEventListener("click", () => {
+    localStorage.setItem("ft_deload_dismissed", DATE_STR);
+    $("deloadBanner").hidden = true;
+  });
+
+  // Rest timer overlay buttons
+  const restSkip = $("restSkip");
+  const restAdd15 = $("restAdd15");
+  const restSub15 = $("restSub15");
+  if (restSkip) restSkip.addEventListener("click", skipRestTimer);
+  if (restAdd15) restAdd15.addEventListener("click", () => adjustRestTimer(15));
+  if (restSub15) restSub15.addEventListener("click", () => adjustRestTimer(-15));
 
   $("settingsModal").addEventListener("click", e => {
     if (e.target.id === "settingsModal") closeSettings();

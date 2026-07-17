@@ -37,6 +37,16 @@
     <div class="date-strip" id="todayDate">—</div>
 
     <main>
+      <!-- Deload banner (shown when ≥3 consecutive bad days) -->
+      <div class="deload-banner" id="deloadBanner" hidden>
+        <span class="db-icon">⚠</span>
+        <div class="db-text">
+          <strong>建議 Deload</strong>
+          <span id="deloadBannerMsg">連續 3 日狀態不佳，建議下次改主動恢復或降強度</span>
+        </div>
+        <button class="db-close" id="deloadDismiss" type="button">×</button>
+      </div>
+
       <!-- Weekly stats / sparklines -->
       <section class="stats-card">
         <h2>本週統計 <span class="hint">近 7 日</span></h2>
@@ -54,6 +64,25 @@
           <span class="spark-label">蛋白質</span>
           <span class="spark-svg" id="statProteinSpark"></span>
           <span class="spark-val" id="statProteinVal">—</span>
+        </div>
+        <div class="stats-divider"></div>
+        <div class="stats-row-2col">
+          <div class="stat-box">
+            <div class="stat-box-label">體重 30 日</div>
+            <div class="stat-box-chart" id="weightTrendChart"></div>
+            <div class="stat-box-val" id="weightTrendVal">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-box-label">ACWR（急/慢負荷）</div>
+            <div class="acwr-display">
+              <div class="acwr-bar">
+                <div class="acwr-safe-zone"></div>
+                <div class="acwr-marker" id="acwrMarker"></div>
+              </div>
+              <div class="acwr-val" id="acwrVal">—</div>
+            </div>
+            <div class="stat-box-val" id="acwrLabel">尚無資料</div>
+          </div>
         </div>
       </section>
 
@@ -380,6 +409,26 @@
       </section>
     </main>
   </section>
+
+  <!-- Rest timer overlay -->
+  <div class="rest-timer" id="restTimer" hidden>
+    <div class="rest-ring">
+      <svg viewBox="0 0 120 120">
+        <circle class="rest-ring-bg" cx="60" cy="60" r="52" />
+        <circle class="rest-ring-fg" cx="60" cy="60" r="52" id="restRingFg" />
+      </svg>
+      <div class="rest-time" id="restTime">1:30</div>
+    </div>
+    <div class="rest-info">
+      <div class="rest-label" id="restLabel">組間休息</div>
+      <div class="rest-total" id="restTotal">/ 90 秒</div>
+    </div>
+    <div class="rest-actions">
+      <button class="btn btn-ghost" id="restAdd15">+15s</button>
+      <button class="btn btn-ghost" id="restSub15">−15s</button>
+      <button class="btn btn-primary" id="restSkip">跳過</button>
+    </div>
+  </div>
 
   <!-- Food analysis modal -->
   <div class="modal" id="analyzeModal" hidden>
