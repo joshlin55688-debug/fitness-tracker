@@ -120,18 +120,23 @@ const PROGRAM = {
     exercises: [
       { name: "槓鈴背蹲（高槓）", setsReps: "4 × 6-8", liftKey: "squat", pct: 0.75, rpe: 8, rest: "3 分",
         note: "全程幅度，蹲至大腿平行以下",
+        pattern: "squat", mg: { primary: ["quads", "glutes"], secondary: ["hamstrings", "lowerback", "abs"] },
         videoQuery: "high bar back squat proper form" },
       { name: "槓鈴平板臥推",    setsReps: "4 × 6-8", liftKey: "bench", pct: 0.75, rpe: 8, rest: "2-3 分",
         note: "Full ROM 觸胸",
+        pattern: "horizontalPush", mg: { primary: ["chest"], secondary: ["delts", "triceps"] },
         videoQuery: "barbell bench press proper form" },
       { name: "槓鈴俯身划船",    setsReps: "4 × 6-8", liftKey: "row", pct: 0.75, rpe: 8, rest: "2 分",
-        note: "軀幹 45°，拉至下腹；背中立",
+        note: "軀幹 45°，拉至下腹；背中立。俯身划船腰椎壓縮最高（約 3576N），下背疲勞或不適時改「胸靠式划船」可大幅降低豎脊肌負荷",
+        pattern: "horizontalPull", mg: { primary: ["lats"], secondary: ["biceps", "traps", "delts", "lowerback"] },
         videoQuery: "barbell bent over row form" },
       { name: "坐姿槓鈴肩推",    setsReps: "3 × 8-10", liftKey: "ohp", pct: 0.72, rpe: 8, rest: "90 秒",
         note: "過頂鎖定，避免過度反弓",
+        pattern: "verticalPush", mg: { primary: ["delts"], secondary: ["triceps", "traps"] },
         videoQuery: "seated barbell shoulder press form" },
       { name: "核心循環",       setsReps: "3 組 30-60 秒", rpeOnly: true, rpe: 7, rest: "30 秒",
         note: "棒式 / 死蟲式 / 農夫走",
+        pattern: "core", mg: { primary: ["abs"], secondary: ["obliques"] },
         videoQuery: "plank dead bug farmer carry core form" },
     ],
   },
@@ -141,18 +146,23 @@ const PROGRAM = {
     exercises: [
       { name: "槓鈴平板臥推",    setsReps: "3 × 6-8", liftKey: "bench", pct: 0.75, rpe: 8, rest: "2 分",
         note: "Full ROM 觸胸",
+        pattern: "horizontalPush", mg: { primary: ["chest"], secondary: ["delts", "triceps"] },
         videoQuery: "barbell bench press proper form" },
       { name: "滑輪下拉 / 引體向上", setsReps: "3 × 8-10", liftKey: "bodyweight", rpe: 8, rest: "90 秒",
         note: "肩胛先下沉，拉至鎖骨上緣",
+        pattern: "verticalPull", mg: { primary: ["lats"], secondary: ["biceps", "traps"] },
         videoQuery: "pull up vs lat pulldown form" },
       { name: "啞鈴肩推",       setsReps: "3 × 8-10", fixed: 20, rpe: 8, rest: "90 秒",
         note: "單手啞鈴 kg；過頂鎖定",
+        pattern: "verticalPush", mg: { primary: ["delts"], secondary: ["triceps"] },
         videoQuery: "seated dumbbell shoulder press form" },
       { name: "二頭 + 三頭超級組", setsReps: "3 × 10", rpeOnly: true, rpe: 8, rest: "60 秒",
         note: "槓鈴二頭 + 繩索下壓，不休息切換",
+        pattern: "armIso", mg: { primary: ["biceps", "triceps"], secondary: ["forearms"] },
         videoQuery: "biceps curl triceps pushdown superset" },
       { name: "→ 挪威 4x4 間歇", setsReps: "10 + 4×(4+3) + 5 分", rpeOnly: true, rpe: 10, rest: "—",
         note: "練完上半身直接接 4x4；詳細秒數見『心率』分頁",
+        pattern: "cardio",
         videoQuery: "norwegian 4x4 interval training" },
     ],
   },
@@ -162,22 +172,58 @@ const PROGRAM = {
     exercises: [
       { name: "傳統硬舉",       setsReps: "4 × 4-6", liftKey: "deadlift", pct: 0.80, rpe: 8.5, rest: "3 分",
         note: "槓貼小腿，背中立，髖鉸鏈先動",
+        pattern: "hinge", mg: { primary: ["hamstrings", "glutes", "lowerback"], secondary: ["quads", "traps", "lats", "forearms"] },
         videoQuery: "conventional deadlift proper form" },
       { name: "前蹲 (Front Squat)", setsReps: "3 × 6-8", liftKey: "frontSquat", pct: 0.75, rpe: 8, rest: "2-3 分",
         note: "軀幹直立，肘高抬",
+        pattern: "squat", mg: { primary: ["quads"], secondary: ["glutes", "abs"] },
         videoQuery: "front squat proper form" },
       { name: "槓鈴髖推",       setsReps: "4 × 8-10", liftKey: "hipThrust", pct: 0.75, rpe: 8, rest: "90 秒",
         note: "頂端臀夾 1 秒；下巴收",
+        pattern: "hipThrust", mg: { primary: ["glutes"], secondary: ["hamstrings"] },
         videoQuery: "barbell hip thrust proper form" },
       { name: "行走式弓步（DB）", setsReps: "3 × 10 步/邊", fixed: 20, rpe: 8, rest: "90 秒",
         note: "單手啞鈴 kg；後膝輕觸地",
+        pattern: "lunge", mg: { primary: ["quads", "glutes"], secondary: ["hamstrings"] },
         videoQuery: "walking lunge dumbbell form" },
       { name: "腿彎舉（機械）",   setsReps: "3 × 8-10", rpeOnly: true, rpe: 8, rest: "60 秒",
         note: "離心 3-4 秒",
+        pattern: "legCurl", mg: { primary: ["hamstrings"], secondary: ["calves"] },
         videoQuery: "lying leg curl machine form" },
       { name: "死蟲式 + 棒式",   setsReps: "3 組", rpeOnly: true, rpe: 7, rest: "30 秒",
         note: "死蟲式 10 下 + 棒式 45 秒",
+        pattern: "core", mg: { primary: ["abs"], secondary: ["obliques"] },
         videoQuery: "dead bug plank core stability" },
+    ],
+  },
+  "新手導入 全身": {
+    title: "新手導入｜全身基礎（0-3 個月 / 回訓爬升）",
+    meta: "神經適應期｜60-70% 1RM（RPE 6，保留 4 下）｜每週 2-3 次｜每動作 1-3 組｜先求動作品質",
+    exercises: [
+      { name: "高腳杯蹲 / 背蹲", setsReps: "2-3 × 8-12", liftKey: "squat", pct: 0.62, rpe: 6, rest: "2 分",
+        note: "新手先用高腳杯蹲學蹲姿，穩了再上背槓；蹲到大腿平行即可",
+        pattern: "squat", mg: { primary: ["quads", "glutes"], secondary: ["hamstrings", "abs"] },
+        videoQuery: "goblet squat beginner form" },
+      { name: "槓鈴 / 啞鈴平板臥推", setsReps: "2-3 × 8-12", liftKey: "bench", pct: 0.62, rpe: 6, rest: "2 分",
+        note: "肩胛後收＋下壓建立穩定；肩不適先用啞鈴，軌跡較自由",
+        pattern: "horizontalPush", mg: { primary: ["chest"], secondary: ["delts", "triceps"] },
+        videoQuery: "dumbbell bench press beginner form" },
+      { name: "滑輪下拉 / 輔助引體", setsReps: "2-3 × 8-12", liftKey: "bodyweight", rpe: 6, rest: "90 秒",
+        note: "肩胛先下沉再拉；力量不足用輔助引體機逐步進展",
+        pattern: "verticalPull", mg: { primary: ["lats"], secondary: ["biceps", "traps"] },
+        videoQuery: "assisted pull up lat pulldown beginner" },
+      { name: "坐姿肩推（機械 / 啞鈴）", setsReps: "2 × 10-12", liftKey: "ohp", pct: 0.60, rpe: 6, rest: "90 秒",
+        note: "肩胛隨手臂上升自然上旋，別全程壓死",
+        pattern: "verticalPush", mg: { primary: ["delts"], secondary: ["triceps"] },
+        videoQuery: "machine shoulder press beginner form" },
+      { name: "羅馬尼亞硬舉（輕）", setsReps: "2 × 10-12", liftKey: "rdl", pct: 0.55, rpe: 6, rest: "90 秒",
+        note: "髖鉸鏈學習用：背中立、膝微彎，感覺大腿後側拉伸再回",
+        pattern: "hinge", mg: { primary: ["hamstrings", "glutes"], secondary: ["lowerback"] },
+        videoQuery: "romanian deadlift beginner form" },
+      { name: "死蟲式 + 棒式", setsReps: "2-3 組", rpeOnly: true, rpe: 6, rest: "30 秒",
+        note: "核心抗動：死蟲式 10 下 + 棒式 30-45 秒",
+        pattern: "core", mg: { primary: ["abs"], secondary: ["obliques"] },
+        videoQuery: "dead bug plank beginner core" },
     ],
   },
 };
@@ -549,18 +595,19 @@ function renderACWR() {
   const pct = Math.max(0, Math.min(100, (ratio / 2.0) * 100));
   marker.style.left = `${pct}%`;
 
+  // ACWR 僅作「負荷驟變」的輔助參考 — 甜蜜帶證據薄弱，不作硬性判準
   if (ratio < 0.8) {
     marker.className = "acwr-marker acwr-low";
-    labelEl.textContent = "低負荷 — 可加碼";
+    labelEl.textContent = "負荷偏低（參考）";
   } else if (ratio <= 1.3) {
     marker.className = "acwr-marker acwr-ok";
-    labelEl.textContent = "✓ 安全甜蜜帶";
+    labelEl.textContent = "負荷平穩（參考）";
   } else if (ratio <= 1.5) {
     marker.className = "acwr-marker acwr-warn";
-    labelEl.textContent = "⚠ 偏高 — 下週宜輕";
+    labelEl.textContent = "負荷上升 — 留意恢復";
   } else {
     marker.className = "acwr-marker acwr-danger";
-    labelEl.textContent = "⚠⚠ 強制 Deload";
+    labelEl.textContent = "負荷驟增 — 對照 Readiness";
   }
 }
 
@@ -706,6 +753,7 @@ function renderProgram() {
           <input type="number" inputmode="decimal" class="set-input" data-ex="${escapeAttr(ex.name)}" data-idx="${idx}" data-field="w" value="${s.w || ""}" placeholder="${placeholderW}" step="0.5">
           <input type="number" inputmode="numeric" class="set-input" data-ex="${escapeAttr(ex.name)}" data-idx="${idx}" data-field="r" value="${s.r || ""}" placeholder="${placeholderR}" step="1">
           <input type="number" inputmode="decimal" class="set-input" data-ex="${escapeAttr(ex.name)}" data-idx="${idx}" data-field="rpe" value="${s.rpe || ""}" placeholder="${placeholderRpe}" step="0.5">
+          <div class="set-rir">${s.rpe !== "" && Number.isFinite(Number(s.rpe)) ? Math.max(0, 10 - Number(s.rpe)) : ""}</div>
           <div class="set-status">${done ? "✓" : ""}</div>
         </div>
       `;
@@ -740,6 +788,35 @@ function renderProgram() {
       ? `<button class="rest-btn" data-seconds="${restSeconds}" data-ex="${escapeAttr(ex.name)}" type="button">⏱ 休息 ${escapeHtml(ex.rest)}</button>`
       : "";
 
+    // Anatomy: muscle map + movement illustration (collapsible)
+    let anatomyHtml = "";
+    if (ex.mg || ex.pattern) {
+      const hasMg = ex.mg && ((ex.mg.primary && ex.mg.primary.length) || (ex.mg.secondary && ex.mg.secondary.length));
+      const chips = hasMg && window.muscleChips ? window.muscleChips(ex.mg.primary, ex.mg.secondary) : "";
+      const mSvg = hasMg && window.muscleSVG ? window.muscleSVG(ex.mg.primary, ex.mg.secondary) : "";
+      const vSvg = ex.pattern && window.movementSVG ? window.movementSVG(ex.pattern) : "";
+      const figs = [
+        mSvg ? `<figure class="anat-fig"><figcaption>使用肌群</figcaption>${mSvg}</figure>` : "",
+        vSvg ? `<figure class="anat-fig"><figcaption>動作</figcaption>${vSvg}</figure>` : "",
+      ].join("");
+      const legend = mSvg
+        ? `<div class="anat-legend"><span><i class="lg-dot lg-primary"></i>主要肌群</span><span><i class="lg-dot lg-secondary"></i>輔助肌群</span></div>`
+        : "";
+      if (figs) {
+        anatomyHtml = `
+          <div class="ex-anatomy">
+            <button class="anat-toggle" type="button" aria-expanded="false">
+              <span class="anat-chips">${chips || '<span class="mg-chip mg-chip-secondary">心肺 / 有氧</span>'}</span>
+              <span class="anat-caret" aria-hidden="true">圖解 ▾</span>
+            </button>
+            <div class="anat-body" hidden>
+              <div class="anat-figs">${figs}</div>
+              ${legend}
+            </div>
+          </div>`;
+      }
+    }
+
     card.innerHTML = `
       <div class="ex-head">
         <div class="ex-num">${String(i + 1).padStart(2, "0")}</div>
@@ -759,6 +836,7 @@ function renderProgram() {
       </div>
       ${warmupHtml}
       ${ex.note ? `<div class="ex-note">${escapeHtml(ex.note)}</div>` : ""}
+      ${anatomyHtml}
       <div class="set-log">
         <div class="set-log-head">
           <span class="set-log-title">本次紀錄</span>
@@ -773,6 +851,7 @@ function renderProgram() {
             <div>kg</div>
             <div>次</div>
             <div>RPE</div>
+            <div>RIR</div>
             <div></div>
           </div>
           ${setRowsHtml}
@@ -799,6 +878,14 @@ function renderProgram() {
   });
   $$("#exerciseList .apply-last-btn").forEach(b => {
     b.addEventListener("click", () => applyLastSession(b.dataset.ex));
+  });
+  $$("#exerciseList .anat-toggle").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const body = btn.parentElement.querySelector(".anat-body");
+      const open = btn.getAttribute("aria-expanded") === "true";
+      btn.setAttribute("aria-expanded", String(!open));
+      if (body) body.hidden = open;
+    });
   });
 }
 
@@ -1055,8 +1142,8 @@ const CORE_PRINCIPLES = [
     icon: "🥩",
     title: "充足蛋白質",
     headline: "提供合成原料",
-    body: "蛋白質食物熱效應最高；白胺酸（Leucine）開啟 mTOR 開關。減脂期需更高，防止肌肉流失。",
-    rule: "1.6-2.2 g/kg（減脂期可達 2.4+）；平均分配三餐，每餐 25-40 g。",
+    body: "蛋白質食物熱效應最高；白胺酸（Leucine）開啟 mTOR 開關。減脂期略提高以防止肌肉流失。",
+    rule: "一般預設 1.6-2.2 g/kg（Morton 2018 統合分析甜蜜點）；進階/體脂已低者減脂期可到 2.3-3.1 g/kg 除脂體重。每餐 25-40 g。",
   },
   {
     icon: "😴",
@@ -1173,6 +1260,10 @@ function onSetInput(e) {
     const done = s.w && s.r && s.rpe;
     row.classList.toggle("done", !!done);
     row.querySelector(".set-status").textContent = done ? "✓" : "";
+    const rirCell = row.querySelector(".set-rir");
+    if (rirCell) {
+      rirCell.textContent = s.rpe !== "" && Number.isFinite(Number(s.rpe)) ? Math.max(0, 10 - Number(s.rpe)) : "";
+    }
   }
 }
 

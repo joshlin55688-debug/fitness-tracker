@@ -6,11 +6,12 @@
  *  - 版本更新時刪除舊快取
  */
 
-const CACHE_VERSION = "ft-v2.2.0";
+const CACHE_VERSION = "ft-v2.5.0";
 const PRECACHE_URLS = [
   "./",
   "./index.html",
   "./style.css",
+  "./anatomy.js",
   "./app.js",
   "./manifest.json",
   "./icons/icon-192.png",

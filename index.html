@@ -73,7 +73,7 @@
             <div class="stat-box-val" id="weightTrendVal">—</div>
           </div>
           <div class="stat-box">
-            <div class="stat-box-label">ACWR（急/慢負荷）</div>
+            <div class="stat-box-label">ACWR 負荷比 <span class="hint">輔助參考</span></div>
             <div class="acwr-display">
               <div class="acwr-bar">
                 <div class="acwr-safe-zone"></div>
@@ -248,6 +248,7 @@
         <button class="day-tab active" data-day="模組 A 全身" role="tab">模組 A<small>全身</small></button>
         <button class="day-tab" data-day="模組 B 上半身 + 4x4" role="tab">模組 B<small>上 + 4x4</small></button>
         <button class="day-tab" data-day="模組 C 下半身 + 核心" role="tab">模組 C<small>下 + 核心</small></button>
+        <button class="day-tab" data-day="新手導入 全身" role="tab">新手 / 回訓<small>全身基礎</small></button>
       </nav>
 
       <!-- Day header -->
@@ -263,12 +264,37 @@
       <section class="card program-notes">
         <h2>提示</h2>
         <ul>
-          <li><strong>熱身</strong>：5 分有氧 + 空槓 + 60% × 5 下 + 80% × 3 下</li>
+          <li><strong>熱身（RAMP）</strong>：5 分有氧 + 空槓 + 60% × 5 下 + 80% × 3 下；動態伸展優先，長時間靜態伸展留到訓練後</li>
           <li><strong>主動作優先</strong>：神經系統最清醒時做大重量複合動作</li>
           <li><strong>Full ROM</strong>：全程幅度收縮，肌肉拉長位置產生最大張力</li>
+          <li><strong>次數區間可彈性</strong>：只要練到接近力竭（保留 0-2 下），低負荷高次數與大重量對肌肥大效果相近 → 器材受限也能練</li>
           <li><strong>1RM 校正</strong>：第 1 週試重後到 ⚙ 設定更新數字，本頁重量會自動重算</li>
-          <li><strong>連續 3 日 Session-RPE 點數高於 4 週平均 130%</strong> → 強制 Deload</li>
+          <li><strong>何時 Deload（多訊號判斷）</strong>：以 <em>Readiness 主觀評分</em> + <em>RPE 趨勢</em>為主 — 連續數日狀態不佳、或同重量 RPE 明顯上升時減載（強度↓60%、組數−40%，不完全停練）。ACWR 僅作輔助參考</li>
         </ul>
+        <p class="footer-meta" style="text-align:left;margin-top:10px;">依實證修訂：ACWR「甜蜜帶」證據薄弱（多來自運動員位移負荷），已降為輔助；「降量不停練」的減載經 RCT 驗證優於整週停練。</p>
+      </section>
+
+      <!-- Weekly volume reference (evidence-based) -->
+      <section class="card program-notes">
+        <h2>📊 週訓練量參考 <span class="hint">每肌群 / 每週組數</span></h2>
+        <ul>
+          <li><strong>大肌群（胸 / 背 / 腿）</strong>：中階 <strong>10-12 組</strong>起跑，上限約 16-18；新手 6-8 組即可長</li>
+          <li><strong>小肌群（二頭 / 三頭 / 側三角）</strong>：中階 <strong>6-8 組</strong>，上限約 12；新手 4-6 組</li>
+          <li><strong>複合動作對協同小肌群算「半組」</strong>：臥推已練到三頭、划船已練到二頭，別重複堆量</li>
+          <li>從「起跑量」開始、有進步就別急著加；上限是天花板不是目標。肌力比肌肥大更早到頂，改吃「頻率」紅利</li>
+        </ul>
+        <p class="footer-meta" style="text-align:left;margin-top:10px;">依據：訓練量-肌肥大呈報酬遞減，約 10 組/肌群/週抓住大部分效益（Pelland et al. 2026, Sports Medicine 統合迴歸；Schoenfeld 系列）。一般人取保守端即可，不必追到理論最大量。</p>
+      </section>
+
+      <!-- Retrainer onboarding (evidence-based) -->
+      <section class="card program-notes">
+        <h2>🔄 中斷後回訓？先降階再爬升</h2>
+        <ul>
+          <li><strong>停練 &gt; 3 個月重新開始</strong>：第 1-2 週用停練前的 <strong>50-60%</strong>（RPE 4-5）起跑，每 1-2 週加約 10%，約 4-8 週回到原強度</li>
+          <li><strong>力量回得快，肌腱跟不上</strong>：肌肉記憶讓你「感覺很快就回來」，但結締組織適應較慢 — 前幾週<strong>別同時</strong>加重量、次數、頻率</li>
+          <li>回訓期是橫紋肌溶解高風險族群之一；以「48 小時內痠痛是否消退」決定能不能加量，痠痛異常持久或尿色變深就停練就醫</li>
+        </ul>
+        <p class="footer-meta" style="text-align:left;margin-top:10px;">多數成年人是「回訓」而非從零開始。依據：肌核永久性（Cumming 2024, J Physiol）＋ CSCCa/NSCA 2019 回訓共識（已保守化為一般人版本）。</p>
       </section>
 
       <section class="footer">
@@ -391,6 +417,30 @@
       <section class="card">
         <h2>🍱 外食族 5 大策略</h2>
         <ol class="eating-list" id="eatingStrategies"></ol>
+      </section>
+
+      <!-- Supplement evidence tiers -->
+      <section class="card">
+        <h2>💊 補給品實證分級 <span class="hint">別繳智商稅</span></h2>
+        <ul class="program-notes-list">
+          <li><strong style="color:var(--green)">實證有效</strong>：乳清蛋白（方便的完全蛋白）、肌酸一水合物（3-5 g/日，安全性證據最強）、咖啡因（3-6 mg/kg，運動前 60 分）</li>
+          <li><strong>情境限定</strong>：Beta-Alanine（高反覆/短休息型訓練才有感，需累積數週）</li>
+          <li><strong style="color:var(--red)">智商稅</strong>：BCAA 單獨補（蛋白已達標就多餘）、脂肪燃燒劑、睪固酮促進劑（Tribulus / D-Aspartic Acid）、ZMA、藤黃果</li>
+        </ul>
+        <p class="footer-meta" style="text-align:left;">依據：ISSN 立場聲明 + 多篇統合分析。補給品優先抽血確認缺乏再補，別常規全補。</p>
+      </section>
+
+      <!-- Fat-loss maintenance / rebound prevention -->
+      <section class="card">
+        <h2>🎯 減脂後：防復胖才是真關卡</h2>
+        <ul class="program-notes-list">
+          <li><strong>復胖是最大失敗點</strong>：長期維持成功率約僅 1/5，逾 8 成 5 年內胖回；達標當下就要啟動維持策略，不是慶祝完就放生</li>
+          <li><strong>設「體重紅線」</strong>：抓目標體重 +2~3 kg 當上限，越線就重啟數週保守赤字（每週減 0.5-0.7% 體重）</li>
+          <li><strong>成功維持者的共通點</strong>：每天約 1 小時活動、至少每週量一次體重看趨勢、飲食一致（含早餐）</li>
+          <li><strong>運動對「維持」比對「減脂當下」更關鍵</strong>：維持期活動量建議拉到 200-300 分/週，並持續重訓 + 高蛋白保肌</li>
+          <li><span style="color:var(--warn-text,var(--yellow))">反向飲食（Reverse Dieting）「修代謝」是行銷大於實證</span>：唯一站得住腳的用途是慢慢加熱量、找到自己的維持點</li>
+        </ul>
+        <p class="footer-meta" style="text-align:left;">依據：National Weight Control Registry（逾萬人）、Biggest Loser 追蹤研究、MATADOR diet break RCT。</p>
       </section>
 
       <!-- Recovery -->
@@ -609,6 +659,7 @@
     </div>
   </div>
 
+  <script src="anatomy.js"></script>
   <script src="app.js"></script>
   <script>
     if ("serviceWorker" in navigator) {

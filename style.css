@@ -23,6 +23,13 @@
   --radius-sm: 10px;
   --shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
   --shadow-accent: 0 6px 20px rgba(255, 107, 26, 0.35);
+  /* Anatomy / muscle map */
+  --mg-primary: #ff6b1a;
+  --mg-secondary: rgba(255, 140, 66, 0.42);
+  --mg-idle: #37332f;
+  --mg-body: #2a2723;
+  --mg-outline: #4a453f;
+  --mg-ghost: #565049;
 }
 
 * {
@@ -455,10 +462,19 @@ body {
 
 .set-row {
   display: grid;
-  grid-template-columns: 28px 1fr 1fr 1fr 22px;
+  grid-template-columns: 26px 1fr 1fr 1fr 34px 22px;
   gap: 6px;
   align-items: center;
 }
+
+.set-rir {
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.set-row.done .set-rir { color: var(--accent-2); }
 
 .set-row.set-row-head {
   font-size: 0.7rem;
@@ -2430,8 +2446,133 @@ input[type=range]::-moz-range-thumb {
 /* Set-row: ensure inputs don't shrink below usable size */
 @media (max-width: 480px) {
   .set-row {
-    grid-template-columns: 24px 1fr 1fr 1fr 20px;
+    grid-template-columns: 22px 1fr 1fr 1fr 28px 18px;
     gap: 4px;
   }
   .set-input { padding: 9px 4px; font-size: 0.9rem; }
+  .set-rir { font-size: 0.76rem; }
+}
+
+/* ===== Anatomy: muscle map + movement illustration ===== */
+.ex-anatomy {
+  margin-top: 10px;
+}
+
+.anat-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+.anat-toggle:hover { border-color: var(--border-strong); background: var(--bg-card-hover); }
+
+.anat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mg-chip {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+.mg-chip-primary {
+  background: rgba(255, 107, 26, 0.16);
+  color: var(--accent-2);
+  border: 1px solid rgba(255, 107, 26, 0.4);
+}
+.mg-chip-secondary {
+  background: var(--bg-card);
+  color: var(--text-dim);
+  border: 1px solid var(--border-strong);
+}
+
+.anat-caret {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+}
+.anat-toggle[aria-expanded="true"] .anat-caret { color: var(--accent); }
+.anat-toggle[aria-expanded="true"] .anat-caret::after { content: ""; }
+
+.anat-body {
+  margin-top: 10px;
+  padding: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.anat-figs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.anat-fig {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 6px 6px;
+}
+.anat-fig figcaption {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  order: -1;
+}
+
+.muscle-map-svg { width: 100%; height: auto; max-height: 190px; }
+.movement-svg { width: 100%; height: auto; max-height: 150px; }
+.mm-cap {
+  fill: var(--text-faint);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: inherit;
+}
+
+.anat-legend {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 10px;
+  font-size: 0.74rem;
+  color: var(--text-dim);
+}
+.anat-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.lg-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.lg-primary { background: var(--mg-primary); }
+.lg-secondary { background: var(--mg-secondary); }
+
+@media (max-width: 400px) {
+  .anat-figs { grid-template-columns: 1fr; }
+  .muscle-map-svg { max-height: 200px; }
 }
